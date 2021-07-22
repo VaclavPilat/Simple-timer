@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import sys, os, json, datetime
-
 """
                 __                                                                            __
                /_/                                                                           /_/
@@ -11,6 +9,12 @@ import sys, os, json, datetime
  | |/ /  / ____ |  | |___    / /___    / ____ |  | |/ /        / /      / /  / /____   / ____ |   / /
  |___/  /_/   |_|   \____/  /______/  /_/   |_|  |___/        /_/      /_/  /______/  /_/   |_|  /_/
 """
+
+
+"""
+Importing modules
+"""
+import sys, os, json, datetime
 
 
 """
@@ -49,7 +53,7 @@ def load_json():
 		timestamps = json.loads(f.read()) # List
 		f.close()
 	except:
-		print_space('An error occured while loading timestamps from file: ' + str(sys.exc_info()[0]) + '". An empty list is used instead. ' + str(sys.exc_info()[0]), 2)
+		print_space('An error occured while loading timestamps from file. An empty list is used instead.', 2)
 		timestamps = []
 	else:
 		print_space('File "' + filename + '" contains ' + str(len(timestamps)) + ' timestamps.', 2)
@@ -72,7 +76,7 @@ def save_json(timestamps):
 		f.write(json.dumps(timestamps, indent=4, sort_keys=True))
 		f.close()
 	except:
-		print_space('An error occured while saving timestamps into file: ' + str(sys.exc_info()[0]), 2)
+		print_space('An error occured while saving timestamps into file: ' + str(sys.exc_info()), 2)
 
 
 """
@@ -82,13 +86,16 @@ def get_status():
 	try:
 		if os.path.isfile(filename): # File exists
 			timestamps = load_json()
-			if len(timestamps) > 0: # Printing out last timestamp
+			if len(timestamps) > 0: # Printing out first timestamp
 				print_space('First timestamp: #' + str(timestamps[0]['id']) + ' "' + timestamps[0]['type'] + '" from ' + timestamps[0]['time']) # Info about first timestamp
-				print_space('Last timestamp: #' + str(timestamps[len(timestamps) - 1]['id']) + ' "' + timestamps[len(timestamps) - 1]['type'] + '" from ' + timestamps[len(timestamps) - 1]['time']) # Info about last timestamp
+				if len(timestamps) > 1: # Printing out last timestamp
+					print_space('Last timestamp: #' + str(timestamps[-1]['id']) + ' "' + timestamps[-1]['type'] + '" from ' + timestamps[-1]['time']) # Info about last timestamp
+				if timestamps[-1]['type'] == 'start':
+					print_space('Note: The file doesn\'t end with a stop timestamp. Time calculations will use current time instead.')
 		else: # File doesn't exist
 			print_space('File "' + filename + '" doesn\'t exist. Creating a new timestamp will create it.')
 	except:
-		print_space('An error occured while getting file status: ' + str(sys.exc_info()[0]))
+		print_space('An error occured while getting file status: ' + str(sys.exc_info()))
 
 
 """
@@ -98,7 +105,7 @@ def new_timestamp(type, timestamps):
 	try:
 		timestamp = {
 			'id': len(timestamps) +1,
-			'type': 'start',
+			'type': type,
 			'time': datetime.datetime.now().strftime(dateformat)
 		}
 		timestamps.append(timestamp)
@@ -106,7 +113,7 @@ def new_timestamp(type, timestamps):
 		save_json(timestamps)
 		load_json()
 	except:
-		print_space('An error occured while creating new timestamp: ' + str(sys.exc_info()[0]))
+		print_space('An error occured while creating new timestamp: ' + str(sys.exc_info()))
 
 
 """
@@ -116,14 +123,14 @@ def start_timestamp():
 	try:
 		timestamps = load_json()
 		if len(timestamps) > 0:
-			if timestamps[len(timestamps) - 1]['type'] == 'start':
+			if timestamps[-1]['type'] == 'start':
 				print_space('File cannot contain two same consecutive timestamps.')
 			else:
 				new_timestamp('start', timestamps)
 		else:
 			new_timestamp('start', timestamps)
 	except:
-		print_space('An error occured while attempting to create a start timestamp: ' + str(sys.exc_info()[0]))
+		print_space('An error occured while attempting to create a start timestamp: ' + str(sys.exc_info()))
 
 
 """
@@ -133,14 +140,14 @@ def stop_timestamp():
 	try:
 		timestamps = load_json()
 		if len(timestamps) > 0:
-			if timestamps[len(timestamps) - 1]['type'] == 'stop':
+			if timestamps[-1]['type'] == 'stop':
 				print_space('File cannot contain two same consecutive timestamps.')
 			else:
 				new_timestamp('stop', timestamps)
 		else:
 			print_space('File has to start with a "start" timestamp.')
 	except:
-		print_space('An error occured while attempting to create a stop timestamp: ' + str(sys.exc_info()[0]))
+		print_space('An error occured while attempting to create a stop timestamp: ' + str(sys.exc_info()))
 
 
 """
@@ -161,7 +168,16 @@ def time_terms():
 Erases last timestamp from file
 """
 def erase_last():
-	pass
+	try:
+		timestamps = load_json()
+		if len(timestamps) > 0:
+			del timestamps[-1]
+			save_json(timestamps)
+			load_json()
+		else:
+			print_space('This file doesn\'t have any timestamps.')
+	except:
+		print_space('An error occured while attempting to create a start timestamp: ' + str(sys.exc_info()))
 
 
 """
@@ -175,7 +191,7 @@ def delete_file():
 		else:
 			print_space('File "' + filename + '" doesn\'t exist.')
 	except:
-		print_space('An error occured while deleting file: ' + str(sys.exc_info()[0]))
+		print_space('An error occured while deleting file: ' + str(sys.exc_info()))
 
 
 """
@@ -195,7 +211,7 @@ commands = {
 
 
 """
-Try to execute a command
+Attempt to execute a command
 """
 def execute_command(command):
 	if command in commands:
@@ -219,8 +235,10 @@ def main(args):
 		while 1: # Asking for commands
 			command = input('Enter command: ')
 			execute_command(command)
+	except SystemExit:
+		pass
 	except:
-		print_space('An error occured: ' + str(sys.exc_info()[0]))
+		print_space('An error occured: ' + str(sys.exc_info()))
 
 
 if __name__ == '__main__':
