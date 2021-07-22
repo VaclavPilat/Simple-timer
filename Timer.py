@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys, os.path, json, datetime
+import sys, os, json, datetime
 
 """
                 __                                                                            __
@@ -43,17 +43,16 @@ def show_commands():
 Loading data from json file into list
 """
 def load_json():
-	print_space('Loading data from "' + filename + '"...')
+	print_space('Loading contents of "' + filename + '"...')
 	try:
 		f = open(filename, "r") # File
 		timestamps = json.loads(f.read()) # List
+		f.close()
 	except:
-		print_space('Cannot load timestamps from "' + filename + '". An empty list is used instead. ' + str(sys.exc_info()[0]), 2)
+		print_space('An error occured while loading timestamps from file: ' + str(sys.exc_info()[0]) + '". An empty list is used instead. ' + str(sys.exc_info()[0]), 2)
 		timestamps = []
 	else:
 		print_space('File "' + filename + '" contains ' + str(len(timestamps)) + ' timestamps.', 2)
-	finally:
-		f.close()
 	return timestamps
 
 
@@ -71,10 +70,9 @@ def save_json(timestamps):
 			print_space('File "' + filename + '" doesn\'t exist. Creating new file...', 2)
 			f = open(filename, "w")
 		f.write(json.dumps(timestamps, indent=4, sort_keys=True))
-	except:
-		print_space('Cannot save data into "' + filename + '". ' + str(sys.exc_info()[0]), 2)
-	finally:
 		f.close()
+	except:
+		print_space('An error occured while saving timestamps into file: ' + str(sys.exc_info()[0]), 2)
 
 
 """
@@ -88,9 +86,9 @@ def get_status():
 				print_space('First timestamp: #' + str(timestamps[0]['id']) + ' "' + timestamps[0]['type'] + '" from ' + timestamps[0]['time']) # Info about first timestamp
 				print_space('Last timestamp: #' + str(timestamps[len(timestamps) - 1]['id']) + ' "' + timestamps[len(timestamps) - 1]['type'] + '" from ' + timestamps[len(timestamps) - 1]['time']) # Info about last timestamp
 		else: # File doesn't exist
-			print_space('File "' + filename + '" doesn\'t exist. Creating a new timestamp will create it.', 2)
+			print_space('File "' + filename + '" doesn\'t exist. Creating a new timestamp will create it.')
 	except:
-		print_space('An error occured. ' + str(sys.exc_info()[0]), 2)
+		print_space('An error occured while getting file status: ' + str(sys.exc_info()[0]))
 
 
 """
@@ -108,7 +106,7 @@ def new_timestamp(type, timestamps):
 		save_json(timestamps)
 		load_json()
 	except:
-		print_space('An error occured. ' + str(sys.exc_info()[0]))
+		print_space('An error occured while creating new timestamp: ' + str(sys.exc_info()[0]))
 
 
 """
@@ -125,7 +123,7 @@ def start_timestamp():
 		else:
 			new_timestamp('start', timestamps)
 	except:
-		print_space('An error occured. ' + str(sys.exc_info()[0]))
+		print_space('An error occured while attempting to create a start timestamp: ' + str(sys.exc_info()[0]))
 
 
 """
@@ -142,7 +140,7 @@ def stop_timestamp():
 		else:
 			print_space('File has to start with a "start" timestamp.')
 	except:
-		print_space('An error occured. ' + str(sys.exc_info()[0]))
+		print_space('An error occured while attempting to create a stop timestamp: ' + str(sys.exc_info()[0]))
 
 
 """
@@ -169,8 +167,15 @@ def erase_last():
 """
 Removing file
 """
-def remove_file():
-	pass
+def delete_file():
+	try:
+		if os.path.isfile(filename): # File exists
+			print_space('Removing file "' + filename + '"...')
+			os.remove(filename)
+		else:
+			print_space('File "' + filename + '" doesn\'t exist.')
+	except:
+		print_space('An error occured while deleting file: ' + str(sys.exc_info()[0]))
 
 
 """
@@ -184,7 +189,7 @@ commands = {
 	'days':    {'description': 'calculates time spent (day by day)',      'function': time_days        },
 	'terms':   {'description': 'calculates time spent (start to stop)',   'function': time_terms       },
 	'erase':   {'description': 'removes last timestamp',                  'function': erase_last       },
-	'delete':  {'description': 'deletes the whole file',                  'function': remove_file      },
+	'delete':  {'description': 'deletes the whole file',                  'function': delete_file      },
 	'exit':    {'description': 'exits the app',                           'function': sys.exit         }
 }
 
@@ -204,15 +209,18 @@ def execute_command(command):
 Main function, asks for commands and executes them
 """
 def main(args):
-	if len(args) > 1: # Executes arguments (if exist)
-		for argument in sys.argv[1:]:
-			execute_command(argument)
-	else:
-		print('Usable commands:')
-		execute_command('help')
-	while 1: # Asking for commands
-		command = input('Enter command: ')
-		execute_command(command)
+	try:
+		if len(args) > 1: # Executes arguments (if exist)
+			for argument in sys.argv[1:]:
+				execute_command(argument)
+		else:
+			print('Usable commands:')
+			execute_command('help')
+		while 1: # Asking for commands
+			command = input('Enter command: ')
+			execute_command(command)
+	except:
+		print_space('An error occured: ' + str(sys.exc_info()[0]))
 
 
 if __name__ == '__main__':
