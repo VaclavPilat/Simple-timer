@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys, os.path
+import sys, os.path, json, datetime
 
 """
                 __                                                                            __
@@ -14,16 +14,21 @@ import sys, os.path
 
 
 """
-Json file that contains timestamps
+Global variables
 """
-filename = "time.json"
+space = '    ' # Message indentation
+filename = 'time.json' # Json file that contains timestamps
+dateformat = '%d.%m.%Y %H:%M:%S' # Datetime format
 
 
 """
 Prints a message with spacing
 """
-def print_space(message):
-	print('    ' + message)
+def print_space(message, count = 1):
+	spaces = ''
+	for i in range(count):
+		spaces += space
+	print(spaces + message)
 
 
 """
@@ -35,17 +40,74 @@ def show_commands():
 
 
 """
+Loading data from json file into list
+"""
+def load_json():
+	print_space('Loading data from "' + filename + '"...')
+	try:
+		f = open(filename, "r") # File
+		j = f.read() # JSON
+		l = json.loads(j) # List
+	except:
+		print_space('Cannot load timestamps from "' + filename + '". An empty list is used instead. ' + str(sys.exc_info()[0]), 2)
+		l = []
+	else:
+		print_space('File "' + filename + '" contains ' + str(len(l)) + ' timestamps.', 2)
+	finally:
+		f.close()
+	return l
+
+
+"""
+Saving data from list into json file
+"""
+def save_json(timestamps):
+	print_space('Saving data into "' + filename + '"...')
+	try:
+		f = open(filename, "w")
+		if os.path.isfile(filename): # File already exists
+			print_space('File "' + filename + '" exists. Replacing its content with new data...', 2)
+			f.truncate()
+		else: # Creating new file
+			print_space('File "' + filename + '" doesn\'t exist. Creating new file...', 2)
+		f.write(json.dumps(timestamps))
+	except:
+		print_space('Cannot save data into "' + filename + '". ' + str(sys.exc_info()[0]))
+	finally:
+		f.close()
+
+
+"""
 Gets basic information about the file
 """
 def get_status():
-	pass
-
+	try:
+		if os.path.isfile(filename): # File exists
+			timestamps = load_json()
+			if len(timestamps) > 0: # Printing out last timestamp
+				print_space('Last timestamp: ' + timestamps[len(timestamps) - 1]['type'] + ' from ' + timestamps[len(timestamps) - 1]['time'], 2)
+		else: # File doesn't exist
+			print_space('File "' + filename + '" doesn\'t exist. Creating a new timestamp will create it.', 2)
+	except:
+		print_space('An error occured. ' + str(sys.exc_info()[0]), 2)
 
 """
 Creates new timestamp
 """
 def new_timestamp():
-	pass
+	try:
+		timestamps = load_json()
+		timestamp = {
+			'id': len(timestamps),
+			'type': 'start',
+			'time': datetime.datetime.now().strftime(dateformat)
+		}
+		timestamps.append(timestamp)
+		print_space('Created new timestamp: "' + str(timestamp) + '"')
+		save_json(timestamps)
+		load_json()
+	except:
+		print_space('An error occured. ' + str(sys.exc_info()[0]))
 
 
 """
