@@ -1,107 +1,82 @@
 #!/usr/bin/env python3
 """
-                __                                                                            __
-               /_/                                                                           /_/
+                __                                                                            __           
+               /_/                                                                           /_/           
   _     __   ___      _____      __        ___    _     __         ____     __   __        ___    _________
  | |   / /  /   |    / ___/     / /       /   |  | |   / /        / __ \   / /  / /       /   |  /___  ___/
- | |  / /  / /| |   / /        / /       / /| |  | |  / /        / /_/ /  / /  / /       / /| |     / /
- | | / /  / /_| |  | |        / /       / /_| |  | | / /        / ____/  / /  / /       / /_| |    / /
- | |/ /  / ____ |  | |___    / /___    / ____ |  | |/ /        / /      / /  / /____   / ____ |   / /
- |___/  /_/   |_|   \____/  /______/  /_/   |_|  |___/        /_/      /_/  /______/  /_/   |_|  /_/
+ | |  / /  / /| |   / /        / /       / /| |  | |  / /        / /_/ /  / /  / /       / /| |     / /    
+ | | / /  / /_| |  | |        / /       / /_| |  | | / /        / ____/  / /  / /       / /_| |    / /     
+ | |/ /  / ____ |  | |___    / /___    / ____ |  | |/ /        / /      / /  / /____   / ____ |   / /      
+ |___/  /_/   |_|   \____/  /______/  /_/   |_|  |___/        /_/      /_/  /______/  /_/   |_|  /_/       
 """
 
 
-"""
-Importing modules
-"""
+# Importing modules
 import sys, os, json, datetime
 
 
-"""
-Global variables
-"""
-space = '    ' # Message indentation
-filename = 'time.json' # Json file that contains timestamps
+# Global variables
+filename = 'timestamps.json' # Json file that contains timestamps
 dateformat = '%d.%m.%Y %H:%M:%S' # Datetime format
+space = '    ' # Message indentation
 
 
-"""
-Prints a message with spacing
-"""
-def print_space(message, count = 1):
-	spaces = ''
-	for i in range(count):
-		spaces += space
-	print(spaces + message)
+def print_space(message):
+	""" Prints a message with spacing """
+	print(space + message)
 
 
-"""
-Printing out usable commands
-"""
 def show_commands():
+	""" Printing out usable commands """
 	for command in commands:
 		print_space(command + ' - ' + commands[command]['description'])
 
 
-"""
-Loading data from json file into list
-"""
 def load_json():
-	print_space('Loading contents of "' + filename + '"...')
+	""" Loading data from json file into list """
 	try:
 		f = open(filename, "r") # File
 		timestamps = json.loads(f.read()) # List
 		f.close()
 	except:
-		print_space('An error occured while loading timestamps from file. An empty list is used instead.', 2)
+		print_space('Cannot load timestamps from file. An empty list is used instead.')
 		timestamps = []
 	else:
-		print_space('File "' + filename + '" contains ' + str(len(timestamps)) + ' timestamps.', 2)
+		print_space('File "' + filename + '" contains ' + str(len(timestamps)) + ' timestamps.')
 	return timestamps
 
 
-"""
-Saving data from list into json file
-"""
 def save_json(timestamps):
-	print_space('Saving data into "' + filename + '"...')
+	""" Saving data from list into json file """
 	try:
-		if os.path.isfile(filename): # File already exists
-			print_space('File "' + filename + '" exists. Replacing its content with new data...', 2)
-			f = open(filename, "w")
-			f.truncate()
-		else: # Creating new file
-			print_space('File "' + filename + '" doesn\'t exist. Creating new file...', 2)
-			f = open(filename, "w")
+		f = open(filename, "w") # File
+		f.truncate()
 		f.write(json.dumps(timestamps, indent=4, sort_keys=True))
 		f.close()
+		print_space('File content has been replaced with new data.')
 	except:
-		print_space('An error occured while saving timestamps into file: ' + str(sys.exc_info()), 2)
+		print_space('An error occured while saving timestamps into file: ' + str(sys.exc_info()))
 
 
-"""
-Gets basic information about the file
-"""
 def get_status():
+	""" Gets basic information about the file """
 	try:
 		if os.path.isfile(filename): # File exists
 			timestamps = load_json()
 			if len(timestamps) > 0: # Printing out first timestamp
-				print_space('First timestamp: #' + str(timestamps[0]['id']) + ' "' + timestamps[0]['type'] + '" from ' + timestamps[0]['time']) # Info about first timestamp
+				print_space('First timestamp: ' + str(timestamps[0]))
 				if len(timestamps) > 1: # Printing out last timestamp
-					print_space('Last timestamp: #' + str(timestamps[-1]['id']) + ' "' + timestamps[-1]['type'] + '" from ' + timestamps[-1]['time']) # Info about last timestamp
+					print_space('Last timestamp: ' + str(timestamps[-1]))
 				if timestamps[-1]['type'] == 'start':
-					print_space('Note: The file doesn\'t end with a stop timestamp. Time calculations will use current time instead.')
+					print_space('File doesn\'t end with a stop timestamp. Calculations will use current time instead.')
 		else: # File doesn't exist
-			print_space('File "' + filename + '" doesn\'t exist. Creating a new timestamp will create it.')
+			print_space('File "' + filename + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 	except:
 		print_space('An error occured while getting file status: ' + str(sys.exc_info()))
 
 
-"""
-Creates new timestamp of a selected type
-"""
 def new_timestamp(type, timestamps):
+	""" Creates new timestamp of a selected type """
 	try:
 		timestamp = {
 			'id': len(timestamps) +1,
@@ -109,17 +84,15 @@ def new_timestamp(type, timestamps):
 			'time': datetime.datetime.now().strftime(dateformat)
 		}
 		timestamps.append(timestamp)
-		print_space('Created new timestamp: "' + str(timestamp) + '"')
+		print_space('New timestamp: ' + str(timestamp))
 		save_json(timestamps)
 		load_json()
 	except:
 		print_space('An error occured while creating new timestamp: ' + str(sys.exc_info()))
 
 
-"""
-Attempts to create a new start timestamp
-"""
 def start_timestamp():
+	""" Attempts to create a new start timestamp """
 	try:
 		timestamps = load_json()
 		if len(timestamps) > 0:
@@ -133,10 +106,8 @@ def start_timestamp():
 		print_space('An error occured while attempting to create a start timestamp: ' + str(sys.exc_info()))
 
 
-"""
-Attempts to create a new stop timestamp
-"""
 def stop_timestamp():
+	""" Attempts to create a new stop timestamp """
 	try:
 		timestamps = load_json()
 		if len(timestamps) > 0:
@@ -150,53 +121,46 @@ def stop_timestamp():
 		print_space('An error occured while attempting to create a stop timestamp: ' + str(sys.exc_info()))
 
 
-"""
-Gets total time spent + time day by day
-"""
 def time_days():
+	""" Gets total time spent + time day by day """
 	pass
 
 
-"""
-Gets total time spent + time spent between start and stop timestamps
-"""
 def time_terms():
+	""" Gets total time spent + time spent between start and stop timestamps """
 	pass
 
 
-"""
-Erases last timestamp from file
-"""
 def erase_last():
+	""" Erases last timestamp from file """
 	try:
-		timestamps = load_json()
-		if len(timestamps) > 0:
-			del timestamps[-1]
-			save_json(timestamps)
-			load_json()
+		if os.path.isfile(filename): # File exists
+			timestamps = load_json()
+			if len(timestamps) > 0:
+				del timestamps[-1]
+				save_json(timestamps)
+				load_json()
+			else:
+				print_space('This file doesn\'t have any timestamps.')
 		else:
-			print_space('This file doesn\'t have any timestamps.')
+			print_space('File "' + filename + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 	except:
 		print_space('An error occured while attempting to create a start timestamp: ' + str(sys.exc_info()))
 
 
-"""
-Removing file
-"""
 def delete_file():
+	""" Removing file """
 	try:
 		if os.path.isfile(filename): # File exists
-			print_space('Removing file "' + filename + '"...')
 			os.remove(filename)
+			print_space('File "' + filename + '" removed.')
 		else:
-			print_space('File "' + filename + '" doesn\'t exist.')
+			print_space('File "' + filename + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 	except:
 		print_space('An error occured while deleting file: ' + str(sys.exc_info()))
 
 
-"""
-List of all commands (with description and a pointer to a function)
-"""
+# List of all commands (with description and a pointer to a function)
 commands = {
 	'help':    {'description': 'shows all usable commands',               'function': show_commands    },
 	'status':  {'description': 'shows basic information about the file',  'function': get_status       },
@@ -210,10 +174,8 @@ commands = {
 }
 
 
-"""
-Attempt to execute a command
-"""
 def execute_command(command):
+	""" Attempt to execute a command """
 	if command in commands:
 		commands[command]['function']() # Calling a function stored in selected command
 	else:
@@ -221,10 +183,8 @@ def execute_command(command):
 	print()
 
 
-"""
-Main function, asks for commands and executes them
-"""
 def main(args):
+	""" Main function, asks for commands and executes them """
 	try:
 		if len(args) > 1: # Executes arguments (if exist)
 			for argument in sys.argv[1:]:
