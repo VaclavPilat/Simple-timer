@@ -12,12 +12,12 @@
 
 
 # Importing modules
-import sys, os, json, datetime
+import sys, os, json, datetime, traceback
 
 
 # Global variables
-filename = 'timestamps.json' # Json file that contains timestamps
-dateformat = '%d.%m.%Y %H:%M:%S' # Datetime format
+file_name = 'timestamps.json' # Json file that contains timestamps
+datetime_format = '%d.%m.%Y %H:%M:%S' # Datetime format
 space = '    ' # Message indentation
 
 
@@ -35,33 +35,33 @@ def show_commands():
 def load_json():
 	""" Loading data from json file into list """
 	try:
-		f = open(filename, "r") # File
+		f = open(file_name, "r") # File
 		timestamps = json.loads(f.read()) # List
 		f.close()
 	except:
 		print_space('Cannot load timestamps from file. An empty list is used instead.')
 		timestamps = []
 	else:
-		print_space('File "' + filename + '" contains ' + str(len(timestamps)) + ' timestamps.')
+		print_space('File "' + file_name + '" contains ' + str(len(timestamps)) + ' timestamps.')
 	return timestamps
 
 
 def save_json(timestamps):
 	""" Saving data from list into json file """
 	try:
-		f = open(filename, "w") # File
+		f = open(file_name, "w") # File
 		f.truncate()
 		f.write(json.dumps(timestamps, indent=4, sort_keys=True))
 		f.close()
 		print_space('File content has been replaced with new data.')
 	except:
-		print_space('An error occured while saving timestamps into file: ' + str(sys.exc_info()))
+		traceback.print_exc()
 
 
 def get_status():
 	""" Gets basic information about the file """
 	try:
-		if os.path.isfile(filename): # File exists
+		if os.path.isfile(file_name): # File exists
 			timestamps = load_json()
 			if len(timestamps) > 0: # Printing out first timestamp
 				print_space('First timestamp: ' + str(timestamps[0]))
@@ -70,9 +70,9 @@ def get_status():
 				if timestamps[-1]['type'] == 'start':
 					print_space('File doesn\'t end with a stop timestamp. Calculations will use current time instead.')
 		else: # File doesn't exist
-			print_space('File "' + filename + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+			print_space('File "' + file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 	except:
-		print_space('An error occured while getting file status: ' + str(sys.exc_info()))
+		traceback.print_exc()
 
 
 def new_timestamp(type, timestamps):
@@ -81,14 +81,14 @@ def new_timestamp(type, timestamps):
 		timestamp = {
 			'id': len(timestamps) +1,
 			'type': type,
-			'time': datetime.datetime.now().strftime(dateformat)
+			'datetime': datetime.datetime.now().strftime(datetime_format)
 		}
 		timestamps.append(timestamp)
 		print_space('New timestamp: ' + str(timestamp))
 		save_json(timestamps)
 		load_json()
 	except:
-		print_space('An error occured while creating new timestamp: ' + str(sys.exc_info()))
+		traceback.print_exc()
 
 
 def start_timestamp():
@@ -103,7 +103,7 @@ def start_timestamp():
 		else:
 			new_timestamp('start', timestamps)
 	except:
-		print_space('An error occured while attempting to create a start timestamp: ' + str(sys.exc_info()))
+		traceback.print_exc()
 
 
 def stop_timestamp():
@@ -118,7 +118,15 @@ def stop_timestamp():
 		else:
 			print_space('File has to start with a "start" timestamp.')
 	except:
-		print_space('An error occured while attempting to create a stop timestamp: ' + str(sys.exc_info()))
+		traceback.print_exc()
+
+
+def delta_to_time_string(delta):
+	""" Gets a formatted string from a deltatime object """
+	hours, remaining_seconds = divmod(delta.seconds, 3600)
+	minutes, seconds = divmod(remaining_seconds, 60)
+	hours += delta.days * 24
+	return str(hours) + ':' + str(minutes) + ':' + str(seconds) + ' = ' + str(round(delta.seconds / 3600, 5))
 
 
 def time_days():
@@ -128,13 +136,36 @@ def time_days():
 
 def time_terms():
 	""" Gets total time spent + time spent between start and stop timestamps """
-	pass
+	try:
+		if os.path.isfile(file_name): # File exists
+			timestamps = load_json()
+			if len(timestamps) > 0:
+				total = datetime.timedelta() # Total time spent
+				for i in range(0, len(timestamps), 2): # Loops through timestamp by 2 steps
+					start = datetime.datetime.strptime(timestamps[i]['datetime'], datetime_format)
+					if (i + 1) < len(timestamps): # Checking if a stop timestamp is available
+						stop = datetime.datetime.strptime(timestamps[i + 1]['datetime'], datetime_format)
+					else: # Using current time instead of missing stop timestamp
+						stop = datetime.datetime.now()
+					delta = stop - start # Timedelta of start and stop timestamps
+					total += delta # Adding current delta to total time
+					delta_string = delta_to_time_string(delta)
+					print_space('#' + str(int(i/2 + 1)) + ' (' + str(start.strftime(datetime_format)) + " - " + str(stop.strftime(datetime_format)) + '): ' + delta_string)
+				if len(timestamps) % 2 == 1:
+					print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
+				print_space('TOTAL TIME SPENT: ' + delta_to_time_string(total))
+			else:
+				print_space('This file doesn\'t have any timestamps. Cannot perform any calculations.')
+		else:
+			print_space('File "' + file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+	except:
+		traceback.print_exc()
 
 
 def erase_last():
 	""" Erases last timestamp from file """
 	try:
-		if os.path.isfile(filename): # File exists
+		if os.path.isfile(file_name): # File exists
 			timestamps = load_json()
 			if len(timestamps) > 0:
 				del timestamps[-1]
@@ -143,21 +174,21 @@ def erase_last():
 			else:
 				print_space('This file doesn\'t have any timestamps.')
 		else:
-			print_space('File "' + filename + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+			print_space('File "' + file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 	except:
-		print_space('An error occured while attempting to create a start timestamp: ' + str(sys.exc_info()))
+		traceback.print_exc()
 
 
 def delete_file():
 	""" Removing file """
 	try:
-		if os.path.isfile(filename): # File exists
-			os.remove(filename)
-			print_space('File "' + filename + '" removed.')
+		if os.path.isfile(file_name): # File exists
+			os.remove(file_name)
+			print_space('File "' + file_name + '" removed.')
 		else:
-			print_space('File "' + filename + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+			print_space('File "' + file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 	except:
-		print_space('An error occured while deleting file: ' + str(sys.exc_info()))
+		traceback.print_exc()
 
 
 # List of all commands (with description and a pointer to a function)
@@ -198,7 +229,7 @@ def main(args):
 	except SystemExit:
 		pass
 	except:
-		print_space('An error occured: ' + str(sys.exc_info()))
+		traceback.print_exc()
 
 
 if __name__ == '__main__':
