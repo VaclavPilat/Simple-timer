@@ -17,13 +17,15 @@ import sys, os, json, datetime, traceback
 
 # Global variables
 file_name = 'timestamps.json' # Json file that contains timestamps
-datetime_format = '%d.%m.%Y %H:%M:%S' # Datetime format
-space = '    ' # Message indentation
+date_format = '%d.%m.%Y' # Date format
+time_format = '%H:%M:%S' # Time format
+datetime_format = date_format + ' ' + time_format # Datetime format
+space = '   ' # Message indentation
 
 
 def print_space(message):
 	""" Prints a message with spacing """
-	print(space + message)
+	print(space + str(message))
 
 
 def show_commands():
@@ -51,11 +53,21 @@ def save_json(timestamps):
 	try:
 		f = open(file_name, "w") # File
 		f.truncate()
-		f.write(json.dumps(timestamps, indent=4, sort_keys=True))
+		f.write(json.dumps(timestamps, indent=4, sort_keys=False))
 		f.close()
 		print_space('File content has been replaced with new data.')
 	except:
 		traceback.print_exc()
+
+
+def string_to_datetime(string):
+	""" Converts a string with a date and time to a datetime object """
+	return datetime.datetime.strptime(string, datetime_format)
+
+
+def string_to_date(string):
+	""" Converts a string with a date and time to a date object """
+	return string_to_datetime(string).date()
 
 
 def get_status():
@@ -64,9 +76,9 @@ def get_status():
 		if os.path.isfile(file_name): # File exists
 			timestamps = load_json()
 			if len(timestamps) > 0: # Printing out first timestamp
-				print_space('First timestamp: ' + str(timestamps[0]))
+				print_space('First timestamp: ' + str(timestamps[0]) + ', ' + str(datetime.datetime.now() - string_to_datetime(timestamps[0]['datetime'])).split(".")[0] + ' ago')
 				if len(timestamps) > 1: # Printing out last timestamp
-					print_space('Last timestamp: ' + str(timestamps[-1]))
+					print_space('Last timestamp: ' + str(timestamps[-1]) + ', ' + str(datetime.datetime.now() - string_to_datetime(timestamps[-1]['datetime'])).split(".")[0] + ' ago')
 				if timestamps[-1]['type'] == 'start':
 					print_space('File doesn\'t end with a stop timestamp. Calculations will use current time instead.')
 		else: # File doesn't exist
@@ -126,12 +138,97 @@ def delta_to_time_string(delta):
 	hours, remaining_seconds = divmod(delta.seconds, 3600)
 	minutes, seconds = divmod(remaining_seconds, 60)
 	hours += delta.days * 24
-	return str(hours) + ':' + str(minutes) + ':' + str(seconds) + ' = ' + str(round(delta.seconds / 3600, 5))
+	return str(hours) + ':' + str(minutes) + ':' + str(seconds) + ' = ' + str(round(((delta.days * 24 * 60 * 60) + delta.seconds) / 3600, 5))
+
+
+def date_to_datetime(date):
+	""" Converts a date object to a datetime object """
+	return datetime.datetime.combine(date, datetime.time.min)
+
+
+def get_timestamps_with_date(timestamps, date):
+	""" Returns all timestamps that share a selected date """
+	timestamps_with_date = []
+	for timestamp in timestamps:
+		if string_to_date(timestamp['datetime']) == date:
+			timestamps_with_date.append(timestamp)
+		else:
+			if len(timestamps_with_date) > 0:
+				break
+	return timestamps_with_date
+
+
+def calculate_terms(timestamps, printing = False):
+	""" Returns total time calculated by adding up time between start and stop timestamps """
+	total = datetime.timedelta()
+	for i in range(0, len(timestamps), 2): # Loops through timestamp by 2 steps
+		start = string_to_datetime(timestamps[i]['datetime']) # Start datetime
+		if (i + 1) < len(timestamps): # Checking if a stop timestamp is available
+			stop = string_to_datetime(timestamps[i + 1]['datetime']) # Stop datetime
+		else: # Using current time instead of missing stop timestamp
+			stop = datetime.datetime.now()
+		delta = stop - start # Timedelta of start and stop timestamps
+		total += delta # Adding current delta to total time
+		delta_string = delta_to_time_string(delta)
+		if printing:
+			print_space('#' + str(int(i/2 + 1)) + ' (' + str(start.strftime(datetime_format)) + " - " + str(stop.strftime(datetime_format)) + '): ' + delta_string)
+	return total
 
 
 def time_days():
 	""" Gets total time spent + time day by day """
-	pass
+	try:
+		if os.path.isfile(file_name): # File exists
+			timestamps = load_json()
+			if len(timestamps) > 0:
+				total = datetime.timedelta() # Total time spent
+				first_date = string_to_date(timestamps[0]['datetime']) # Date of a first timestamp
+				if len(timestamps) % 2 == 0:
+					last_date = string_to_date(timestamps[-1]['datetime']) # Date of a last timestamp
+				else:
+					last_date = datetime.date.today()
+				current_date = first_date
+				last_timestamp = None # Last checked timestamp
+				for i in range((last_date - first_date).days + 1): # Looping for number of days from first to last date, inluding both
+					day_total = datetime.timedelta()
+					timestamps_with_date = get_timestamps_with_date(timestamps, current_date)
+					# Checking if there is an unclosed term left from the past
+					if not last_timestamp == None and last_timestamp['type'] == 'start': 
+						if len(timestamps_with_date) > 0:
+							day_total += (string_to_datetime(timestamps_with_date[0]['datetime']) - date_to_datetime(current_date)) # Adding time from midniht to next stop timestamp
+						else:
+							if current_date == last_date:
+								day_total += (datetime.datetime.now() - date_to_datetime(current_date))
+							else:
+								day_total += datetime.timedelta(days=1)
+					# Looping through timestamps from current date
+					if len(timestamps_with_date) > 0:
+						last_timestamp = timestamps_with_date[-1]
+						# Removing redundant timestamps
+						if timestamps_with_date[0]['type'] == 'stop':
+							del timestamps_with_date[0]
+						if len(timestamps_with_date) > 0 and timestamps_with_date[-1]['type'] == 'start':
+							del timestamps_with_date[-1]
+					day_total += calculate_terms(timestamps_with_date)
+					# Checking if there is an unclosed term left from today
+					next_day = (date_to_datetime(current_date) + datetime.timedelta(days=1)).date() # Next day (midnight)
+					if not last_timestamp == None and last_timestamp['type'] == 'start' and string_to_date(last_timestamp['datetime']) == current_date:
+						if current_date == last_date:
+							day_total += datetime.datetime.now() - string_to_datetime(last_timestamp['datetime'])
+						else:
+							day_total += date_to_datetime(next_day) - string_to_datetime(last_timestamp['datetime'])
+					total += day_total
+					print_space(str(current_date.strftime(date_format)) + ': ' + delta_to_time_string(day_total))
+					current_date = next_day # Changing current date to a next day
+				if len(timestamps) % 2 == 1:
+					print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
+				print_space('TOTAL TIME SPENT: ' + delta_to_time_string(total))
+			else:
+				print_space('This file doesn\'t have any timestamps. Cannot perform any calculations.')
+		else:
+			print_space('File "' + file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+	except:
+		traceback.print_exc()
 
 
 def time_terms():
@@ -140,17 +237,7 @@ def time_terms():
 		if os.path.isfile(file_name): # File exists
 			timestamps = load_json()
 			if len(timestamps) > 0:
-				total = datetime.timedelta() # Total time spent
-				for i in range(0, len(timestamps), 2): # Loops through timestamp by 2 steps
-					start = datetime.datetime.strptime(timestamps[i]['datetime'], datetime_format)
-					if (i + 1) < len(timestamps): # Checking if a stop timestamp is available
-						stop = datetime.datetime.strptime(timestamps[i + 1]['datetime'], datetime_format)
-					else: # Using current time instead of missing stop timestamp
-						stop = datetime.datetime.now()
-					delta = stop - start # Timedelta of start and stop timestamps
-					total += delta # Adding current delta to total time
-					delta_string = delta_to_time_string(delta)
-					print_space('#' + str(int(i/2 + 1)) + ' (' + str(start.strftime(datetime_format)) + " - " + str(stop.strftime(datetime_format)) + '): ' + delta_string)
+				total = calculate_terms(timestamps, True) # Calculates total time in terms
 				if len(timestamps) % 2 == 1:
 					print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
 				print_space('TOTAL TIME SPENT: ' + delta_to_time_string(total))
@@ -206,7 +293,7 @@ commands = {
 
 
 def execute_command(command):
-	""" Attempt to execute a command """
+	""" Attempt to execute a command from list of commands"""
 	if command in commands:
 		commands[command]['function']() # Calling a function stored in selected command
 	else:
@@ -223,7 +310,7 @@ def main(args):
 		else:
 			print('Usable commands:')
 			execute_command('help')
-		while 1: # Asking for commands
+		while True: # Asking for commands
 			command = input('Enter command: ')
 			execute_command(command)
 	except SystemExit:
