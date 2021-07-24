@@ -76,9 +76,9 @@ def get_status():
 		if os.path.isfile(file_name): # File exists
 			timestamps = load_json()
 			if len(timestamps) > 0: # Printing out first timestamp
-				print_space('First timestamp: ' + str(timestamps[0]) + ', ' + str(datetime.datetime.now() - string_to_datetime(timestamps[0]['datetime'])).split(".")[0] + ' ago')
+				print_space('First timestamp: ' + str(timestamps[0]) + ' from ' + str(datetime.datetime.now() - string_to_datetime(timestamps[0]['datetime'])).split(".")[0] + ' ago')
 				if len(timestamps) > 1: # Printing out last timestamp
-					print_space('Last timestamp: ' + str(timestamps[-1]) + ', ' + str(datetime.datetime.now() - string_to_datetime(timestamps[-1]['datetime'])).split(".")[0] + ' ago')
+					print_space('Last timestamp: ' + str(timestamps[-1]) + ' from ' + str(datetime.datetime.now() - string_to_datetime(timestamps[-1]['datetime'])).split(".")[0] + ' ago')
 				if timestamps[-1]['type'] == 'start':
 					print_space('File doesn\'t end with a stop timestamp. Calculations will use current time instead.')
 		else: # File doesn't exist
@@ -189,6 +189,7 @@ def time_days():
 					last_date = datetime.date.today()
 				current_date = first_date
 				last_timestamp = None # Last checked timestamp
+				message_id = 1 # ID of a printed out message
 				for i in range((last_date - first_date).days + 1): # Looping for number of days from first to last date, inluding both
 					day_total = datetime.timedelta()
 					timestamps_with_date = get_timestamps_with_date(timestamps, current_date)
@@ -217,8 +218,10 @@ def time_days():
 							day_total += datetime.datetime.now() - string_to_datetime(last_timestamp['datetime'])
 						else:
 							day_total += date_to_datetime(next_day) - string_to_datetime(last_timestamp['datetime'])
-					total += day_total
-					print_space(str(current_date.strftime(date_format)) + ': ' + delta_to_time_string(day_total))
+					if not day_total == datetime.timedelta(): # Printing out day total (if its not zero)
+						total += day_total
+						print_space('#' + str(message_id) + ' ' + str(current_date.strftime(date_format)) + ': ' + delta_to_time_string(day_total))
+						message_id += 1
 					current_date = next_day # Changing current date to a next day
 				if len(timestamps) % 2 == 1:
 					print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
@@ -284,8 +287,8 @@ commands = {
 	'status':  {'description': 'shows basic information about the file',  'function': get_status       },
 	'start':   {'description': 'creates new "start" timestamp',           'function': start_timestamp  },
 	'stop':    {'description': 'creates new "stop" timestamp',            'function': stop_timestamp   },
-	'days':    {'description': 'calculates time spent (day by day)',      'function': time_days        },
 	'terms':   {'description': 'calculates time spent (start to stop)',   'function': time_terms       },
+	'days':    {'description': 'calculates time spent (day by day)',      'function': time_days        },
 	'erase':   {'description': 'removes last timestamp',                  'function': erase_last       },
 	'delete':  {'description': 'deletes the whole file',                  'function': delete_file      },
 	'exit':    {'description': 'exits the app',                           'function': sys.exit         }
@@ -307,12 +310,13 @@ def main(args):
 		if len(args) > 1: # Executes arguments (if exist)
 			for argument in sys.argv[1:]:
 				execute_command(argument)
-		else:
+			execute_command('exit')
+		else: # Asking for commands
 			print('Usable commands:')
 			execute_command('help')
-		while True: # Asking for commands
-			command = input('Enter command: ')
-			execute_command(command)
+			while True:
+				command = input('Enter command: ')
+				execute_command(command)
 	except SystemExit:
 		pass
 	except:
