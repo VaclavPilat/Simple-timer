@@ -48,7 +48,14 @@ class Timer:
 		hours, remaining_seconds = divmod(delta.seconds, 3600)
 		minutes, seconds = divmod(remaining_seconds, 60)
 		hours += delta.days * 24
-		return str(hours) + ':' + str(minutes) + ':' + str(seconds) + ' = ' + str(round(((delta.days * 24 * 60 * 60) + delta.seconds) / 3600, 5)) + ' hours'
+		output = str(hours) + ':'
+		if len(str(minutes)) == 1:
+			output += "0"
+		output += str(minutes) + ':'
+		if len(str(seconds)) == 1:
+			output += "0"
+		output += str(seconds) + ' = ' + str(round(((delta.days * 24 * 60 * 60) + delta.seconds) / 3600, 5)) + ' hours'
+		return output
 	
 
 	def __file_exists(self):
@@ -151,14 +158,16 @@ class Timer:
 			traceback.print_exc()
 
 
-	def __get_timestamps_with_date(self, timestamps, date):
-		""" Returns all timestamps that share a selected date """
+	def __get_timestamps_within_date_span(self, timestamps, date_from, date_to = None):
+		""" Returns all timestamps that have a date within a selected time span """
+		if date_to == None:
+			date_to = date_from
 		timestamps_with_date = []
 		for timestamp in timestamps:
-			if self.__string_to_date(timestamp['datetime']) == date:
+			if self.__string_to_date(timestamp['datetime']) >= date_from and self.__string_to_date(timestamp['datetime']) <= date_to:
 				timestamps_with_date.append(timestamp)
 			else:
-				if len(timestamps_with_date) > 0:
+				if len(timestamps_with_date) > 0: # Breaking the loop if there aren't any more timestamps with matching date
 					break
 		return timestamps_with_date
 
@@ -176,8 +185,26 @@ class Timer:
 			total += delta # Adding current delta to total time
 			delta_string = self.__delta_to_time_string(delta)
 			if printing:
-				self.__print_space('#' + str(int(i/2 + 1)) + ' (' + str(start.strftime(self.datetime_format)) + " - " + str(stop.strftime(self.datetime_format)) + '): ' + delta_string)
+				self.__print_space('#' + str(int(i/2 + 1)) + ' (' + str(start.strftime(self.datetime_format)) + " - " + str(stop.strftime(self.datetime_format)) + ') :: ' + delta_string)
 		return total
+
+
+	def time_terms(self):
+		""" Gets total time spent + time spent between start and stop timestamps """
+		try:
+			if self.__file_exists(): # File exists
+				timestamps = self.__load_json()
+				if len(timestamps) > 0:
+					total = self.__calculate_terms(timestamps, True) # Calculates total time in terms
+					if len(timestamps) % 2 == 1:
+						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
+					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
+				else:
+					self.__print_space('This file doesn\'t have any timestamps. Cannot perform any calculations.')
+			else:
+				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+		except:
+			traceback.print_exc()
 
 
 	def time_days(self):
@@ -197,7 +224,7 @@ class Timer:
 					message_id = 1 # ID of a printed out message
 					for i in range((last_date - first_date).days + 1): # Looping for number of days from first to last date, inluding both
 						day_total = datetime.timedelta()
-						timestamps_with_date = self.__get_timestamps_with_date(timestamps, current_date)
+						timestamps_with_date = self.__get_timestamps_within_date_span(timestamps, current_date)
 						# Checking if there is an unclosed term left from the past
 						if not last_timestamp == None and last_timestamp['type'] == 'start': 
 							if len(timestamps_with_date) > 0:
@@ -225,27 +252,9 @@ class Timer:
 								day_total += self.__date_to_datetime(next_day) - self.__string_to_datetime(last_timestamp['datetime'])
 						if not day_total == datetime.timedelta(): # Printing out day total (if its not zero)
 							total += day_total
-							self.__print_space('#' + str(message_id) + ' ' + str(current_date.strftime(self.date_format)) + ': ' + self.__delta_to_time_string(day_total))
+							self.__print_space('#' + str(message_id) + ' ' + str(current_date.strftime(self.date_format)) + ' :: ' + self.__delta_to_time_string(day_total))
 							message_id += 1
 						current_date = next_day # Changing current date to a next day
-					if len(timestamps) % 2 == 1:
-						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
-					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
-				else:
-					self.__print_space('This file doesn\'t have any timestamps. Cannot perform any calculations.')
-			else:
-				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
-		except:
-			traceback.print_exc()
-
-
-	def time_terms(self):
-		""" Gets total time spent + time spent between start and stop timestamps """
-		try:
-			if self.__file_exists(): # File exists
-				timestamps = self.__load_json()
-				if len(timestamps) > 0:
-					total = self.__calculate_terms(timestamps, True) # Calculates total time in terms
 					if len(timestamps) % 2 == 1:
 						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
 					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
