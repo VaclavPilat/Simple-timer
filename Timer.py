@@ -20,6 +20,10 @@ class Timer:
 	file_name = 'timestamps.json' # Json file that contains timestamps
 	date_format = '%d.%m.%Y' # Date format
 	time_format = '%H:%M:%S' # Time format
+
+
+	current_directory = os.path.dirname(__file__) # The directory where this script is located
+	absolute_filepath = os.path.join(current_directory, file_name) # Absolute path to a timesheet file
 	datetime_format = date_format + ' ' + time_format # Datetime format
 
 
@@ -60,13 +64,13 @@ class Timer:
 
 	def __file_exists(self):
 		""" Checks if file containing timestamps exists """
-		return os.path.isfile(self.file_name)
+		return os.path.isfile(self.absolute_filepath)
 
 
 	def __load_json(self):
 		""" Loading data from json file into list """
 		try:
-			f = open(self.file_name, "r") # File
+			f = open(self.absolute_filepath, "r") # File
 			timestamps = json.loads(f.read()) # List
 			f.close()
 		except:
@@ -80,7 +84,7 @@ class Timer:
 	def __save_json(self, timestamps):
 		""" Saving data from list into json file """
 		try:
-			f = open(self.file_name, "w") # File
+			f = open(self.absolute_filepath, "w") # File
 			f.truncate()
 			f.write(json.dumps(timestamps, indent=4, sort_keys=False))
 			f.close()
@@ -287,7 +291,7 @@ class Timer:
 		""" Removing file """
 		try:
 			if self.__file_exists(): # File exists
-				os.remove(self.file_name)
+				os.remove(self.absolute_filepath)
 				self.__print_space('File "' + self.file_name + '" removed.')
 			else:
 				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
