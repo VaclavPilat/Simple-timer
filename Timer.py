@@ -193,6 +193,49 @@ class Timer:
 		return total
 
 
+	def __calculate_days(self, timestamps, first_date, last_date, printing = False):
+		""" Returns total time calculated by adding up time spent on each day within a set time span """
+		timespan_total = datetime.timedelta() # Total time spent in this timespan
+		current_date = first_date
+		last_timestamp = None # Last checked timestamp
+		message_id = 1 # ID of a printed out message
+		for i in range((last_date - first_date).days + 1): # Looping for number of days from first to last date, inluding both
+			day_total = datetime.timedelta()
+			timestamps_with_date = self.__get_timestamps_within_date_span(timestamps, current_date)
+			# Checking if there is an unclosed term left from the past
+			if not last_timestamp == None and last_timestamp['type'] == 'start': 
+				if len(timestamps_with_date) > 0:
+					day_total += (self.__string_to_datetime(timestamps_with_date[0]['datetime']) - self.__date_to_datetime(current_date)) # Adding time from midniht to next stop timestamp
+				else:
+					if current_date == last_date:
+						day_total += (datetime.datetime.now() - self.__date_to_datetime(current_date))
+					else:
+						day_total += datetime.timedelta(days=1)
+			# Looping through timestamps from current date
+			if len(timestamps_with_date) > 0:
+				last_timestamp = timestamps_with_date[-1]
+				# Removing redundant timestamps
+				if timestamps_with_date[0]['type'] == 'stop':
+					del timestamps_with_date[0]
+				if len(timestamps_with_date) > 0 and timestamps_with_date[-1]['type'] == 'start':
+					del timestamps_with_date[-1]
+			day_total += self.__calculate_terms(timestamps_with_date)
+			# Checking if there is an unclosed term left from today
+			next_day = (self.__date_to_datetime(current_date) + datetime.timedelta(days=1)).date() # Next day (midnight)
+			if not last_timestamp == None and last_timestamp['type'] == 'start' and self.__string_to_date(last_timestamp['datetime']) == current_date:
+				if current_date == last_date:
+					day_total += datetime.datetime.now() - self.__string_to_datetime(last_timestamp['datetime'])
+				else:
+					day_total += self.__date_to_datetime(next_day) - self.__string_to_datetime(last_timestamp['datetime'])
+			if not day_total == datetime.timedelta(): # Printing out day total (if its not zero)
+				timespan_total += day_total
+				if printing == True:
+					self.__print_space('#' + str(message_id) + ' ' + str(current_date.strftime(self.date_format)) + ' :: ' + self.__delta_to_time_string(day_total))
+				message_id += 1
+			current_date = next_day # Changing current date to a next day
+		return timespan_total
+
+
 	def time_terms(self):
 		""" Gets total time spent + time spent between start and stop timestamps """
 		try:
@@ -217,48 +260,12 @@ class Timer:
 			if self.__file_exists(): # File exists
 				timestamps = self.__load_json()
 				if len(timestamps) > 0:
-					total = datetime.timedelta() # Total time spent
 					first_date = self.__string_to_date(timestamps[0]['datetime']) # Date of a first timestamp
 					if len(timestamps) % 2 == 0:
 						last_date = self.__string_to_date(timestamps[-1]['datetime']) # Date of a last timestamp
 					else:
 						last_date = datetime.date.today()
-					current_date = first_date
-					last_timestamp = None # Last checked timestamp
-					message_id = 1 # ID of a printed out message
-					for i in range((last_date - first_date).days + 1): # Looping for number of days from first to last date, inluding both
-						day_total = datetime.timedelta()
-						timestamps_with_date = self.__get_timestamps_within_date_span(timestamps, current_date)
-						# Checking if there is an unclosed term left from the past
-						if not last_timestamp == None and last_timestamp['type'] == 'start': 
-							if len(timestamps_with_date) > 0:
-								day_total += (self.__string_to_datetime(timestamps_with_date[0]['datetime']) - self.__date_to_datetime(current_date)) # Adding time from midniht to next stop timestamp
-							else:
-								if current_date == last_date:
-									day_total += (datetime.datetime.now() - self.__date_to_datetime(current_date))
-								else:
-									day_total += datetime.timedelta(days=1)
-						# Looping through timestamps from current date
-						if len(timestamps_with_date) > 0:
-							last_timestamp = timestamps_with_date[-1]
-							# Removing redundant timestamps
-							if timestamps_with_date[0]['type'] == 'stop':
-								del timestamps_with_date[0]
-							if len(timestamps_with_date) > 0 and timestamps_with_date[-1]['type'] == 'start':
-								del timestamps_with_date[-1]
-						day_total += self.__calculate_terms(timestamps_with_date)
-						# Checking if there is an unclosed term left from today
-						next_day = (self.__date_to_datetime(current_date) + datetime.timedelta(days=1)).date() # Next day (midnight)
-						if not last_timestamp == None and last_timestamp['type'] == 'start' and self.__string_to_date(last_timestamp['datetime']) == current_date:
-							if current_date == last_date:
-								day_total += datetime.datetime.now() - self.__string_to_datetime(last_timestamp['datetime'])
-							else:
-								day_total += self.__date_to_datetime(next_day) - self.__string_to_datetime(last_timestamp['datetime'])
-						if not day_total == datetime.timedelta(): # Printing out day total (if its not zero)
-							total += day_total
-							self.__print_space('#' + str(message_id) + ' ' + str(current_date.strftime(self.date_format)) + ' :: ' + self.__delta_to_time_string(day_total))
-							message_id += 1
-						current_date = next_day # Changing current date to a next day
+					total = self.__calculate_days(timestamps, first_date, last_date, True) # Total time spent
 					if len(timestamps) % 2 == 1:
 						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
 					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
