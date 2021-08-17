@@ -296,7 +296,10 @@ class Timer:
 						current_month_days = calendar.monthrange(current_month_first_day.year, current_month_first_day.month)[1] # Numer of months in the current month
 						current_month_last_day = datetime.date(current_month_first_day.year, current_month_first_day.month, current_month_days) # Last day of the current month
 						current_month_timestamps = self.__get_timestamps_within_date_span(timestamps, current_month_first_day, current_month_last_day) # Timestamps from the current month
-						calculated_days = self.__calculate_days(current_month_timestamps, current_month_first_day, current_month_last_day, last_timestamp) # Calculating this month's total time spent
+						if current_month_last_day.year == datetime.date.today().year and current_month_last_day.month == datetime.date.today().month:
+							calculated_days = self.__calculate_days(current_month_timestamps, current_month_first_day, datetime.date.today(), last_timestamp) # Calculating this month's total time spent
+						else:
+							calculated_days = self.__calculate_days(current_month_timestamps, current_month_first_day, current_month_last_day, last_timestamp) # Calculating this month's total time spent
 						current_month_total = calculated_days[0]
 						last_timestamp = calculated_days[1]
 						if not current_month_total == datetime.timedelta(): # Printing out day total (if its not zero)
