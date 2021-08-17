@@ -20,6 +20,7 @@ class Timer:
 	file_name = 'timestamps.json' # Json file that contains timestamps
 	date_format = '%d.%m.%Y' # Date format
 	time_format = '%H:%M:%S' # Time format
+	display_empty = False # Displaying days/months on which there was no activity
 
 
 	current_directory = os.path.dirname(__file__) # The directory where this script is located
@@ -189,7 +190,7 @@ class Timer:
 			total += delta # Adding current delta to total time
 			delta_string = self.__delta_to_time_string(delta)
 			if printing:
-				self.__print_space('#' + str(int(i/2 + 1)) + ' (' + str(start.strftime(self.datetime_format)) + " - " + str(stop.strftime(self.datetime_format)) + ') :: ' + delta_string)
+				self.__print_space('[' + str(int(i/2 + 1)) + '] ' + str(start.strftime(self.datetime_format)) + " - " + str(stop.strftime(self.datetime_format)) + ' :: ' + delta_string)
 		return total
 
 
@@ -226,10 +227,10 @@ class Timer:
 					day_total += datetime.datetime.now() - self.__string_to_datetime(last_timestamp['datetime'])
 				else:
 					day_total += self.__date_to_datetime(next_day) - self.__string_to_datetime(last_timestamp['datetime'])
-			if not day_total == datetime.timedelta(): # Printing out day total (if its not zero)
+			if not day_total == datetime.timedelta() or self.display_empty: # Printing out day total
 				timespan_total += day_total
 				if printing == True:
-					self.__print_space('#' + str(message_id) + ' ' + str(current_date.strftime(self.date_format)) + ' :: ' + self.__delta_to_time_string(day_total))
+					self.__print_space('[' + str(message_id) + '] ' + str(current_date.strftime(self.date_format)) + ' :: ' + self.__delta_to_time_string(day_total))
 				if current_date == datetime.date.today(): # Breaking the loop if there aren't any timestamps left (necessary for months calculations)
 					break
 				message_id += 1
@@ -291,21 +292,23 @@ class Timer:
 						last_date = datetime.date.today()
 					total = datetime.timedelta() # Total time spent
 					last_timestamp = None
-					current_month_first_day = datetime.date(first_date.year, first_date.month, 1) # First day of the current month
-					while current_month_first_day.year <= last_date.year and current_month_first_day.month <= last_date.month:
-						current_month_days = calendar.monthrange(current_month_first_day.year, current_month_first_day.month)[1] # Numer of months in the current month
-						current_month_last_day = datetime.date(current_month_first_day.year, current_month_first_day.month, current_month_days) # Last day of the current month
-						current_month_timestamps = self.__get_timestamps_within_date_span(timestamps, current_month_first_day, current_month_last_day) # Timestamps from the current month
-						if current_month_last_day.year == datetime.date.today().year and current_month_last_day.month == datetime.date.today().month:
-							calculated_days = self.__calculate_days(current_month_timestamps, current_month_first_day, datetime.date.today(), last_timestamp) # Calculating this month's total time spent
+					current_first_day = datetime.date(first_date.year, first_date.month, 1) # First day of the current month
+					message_id = 1
+					while current_first_day.year <= last_date.year and current_first_day.month <= last_date.month:
+						current_days = calendar.monthrange(current_first_day.year, current_first_day.month)[1] # Looping through each month
+						current_last_day = datetime.date(current_first_day.year, current_first_day.month, current_days) # Last day of the current month
+						current_timestamps = self.__get_timestamps_within_date_span(timestamps, current_first_day, current_last_day) # Timestamps from the current month
+						if current_last_day.year == datetime.date.today().year and current_last_day.month == datetime.date.today().month:
+							calculated_days = self.__calculate_days(current_timestamps, current_first_day, datetime.date.today(), last_timestamp) # Calculating this month's total time spent
 						else:
-							calculated_days = self.__calculate_days(current_month_timestamps, current_month_first_day, current_month_last_day, last_timestamp) # Calculating this month's total time spent
-						current_month_total = calculated_days[0]
+							calculated_days = self.__calculate_days(current_timestamps, current_first_day, current_last_day, last_timestamp) # Calculating this month's total time spent
+						current_total = calculated_days[0]
 						last_timestamp = calculated_days[1]
-						if not current_month_total == datetime.timedelta(): # Printing out day total (if its not zero)
-							total += current_month_total
-							self.__print_space("# " + calendar.month_name[current_month_first_day.month] + " " + str(current_month_first_day.year) + " :: " + self.__delta_to_time_string(current_month_total))
-						current_month_first_day = current_month_last_day + datetime.timedelta(days=1)
+						if not current_total == datetime.timedelta() or self.display_empty: # Printing out month total
+							total += current_total
+							self.__print_space('[' + str(message_id) + '] ' + calendar.month_name[current_first_day.month] + " " + str(current_first_day.year) + " :: " + self.__delta_to_time_string(current_total))
+							message_id += 1
+						current_first_day = current_last_day + datetime.timedelta(days=1)
 					if len(timestamps) % 2 == 1:
 						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
 					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
@@ -383,7 +386,7 @@ class Timer:
 				while True:
 					command = input('Enter command: ')
 					self.__execute_command(command)
-		except SystemExit:
+		except (SystemExit, KeyboardInterrupt):
 			pass
 		except:
 			traceback.print_exc()
