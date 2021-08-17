@@ -12,7 +12,7 @@
 
 
 # Importing modules
-import sys, os, json, datetime, traceback
+import sys, os, json, datetime, calendar, traceback
 
 
 class Timer:
@@ -193,11 +193,10 @@ class Timer:
 		return total
 
 
-	def __calculate_days(self, timestamps, first_date, last_date, printing = False):
+	def __calculate_days(self, timestamps, first_date, last_date, last_timestamp = None, printing = False):
 		""" Returns total time calculated by adding up time spent on each day within a set time span """
 		timespan_total = datetime.timedelta() # Total time spent in this timespan
 		current_date = first_date
-		last_timestamp = None # Last checked timestamp
 		message_id = 1 # ID of a printed out message
 		for i in range((last_date - first_date).days + 1): # Looping for number of days from first to last date, inluding both
 			day_total = datetime.timedelta()
@@ -207,7 +206,7 @@ class Timer:
 				if len(timestamps_with_date) > 0:
 					day_total += (self.__string_to_datetime(timestamps_with_date[0]['datetime']) - self.__date_to_datetime(current_date)) # Adding time from midniht to next stop timestamp
 				else:
-					if current_date == last_date:
+					if current_date == datetime.date.today():
 						day_total += (datetime.datetime.now() - self.__date_to_datetime(current_date))
 					else:
 						day_total += datetime.timedelta(days=1)
@@ -231,9 +230,11 @@ class Timer:
 				timespan_total += day_total
 				if printing == True:
 					self.__print_space('#' + str(message_id) + ' ' + str(current_date.strftime(self.date_format)) + ' :: ' + self.__delta_to_time_string(day_total))
+				if current_date == datetime.date.today(): # Breaking the loop if there aren't any timestamps left (necessary for months calculations)
+					break
 				message_id += 1
 			current_date = next_day # Changing current date to a next day
-		return timespan_total
+		return [timespan_total, last_timestamp]
 
 
 	def time_terms(self):
@@ -265,7 +266,43 @@ class Timer:
 						last_date = self.__string_to_date(timestamps[-1]['datetime']) # Date of a last timestamp
 					else:
 						last_date = datetime.date.today()
-					total = self.__calculate_days(timestamps, first_date, last_date, True) # Total time spent
+					total = self.__calculate_days(timestamps, first_date, last_date, None, True)[0] # Total time spent
+					if len(timestamps) % 2 == 1:
+						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
+					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
+				else:
+					self.__print_space('This file doesn\'t have any timestamps. Cannot perform any calculations.')
+			else:
+				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+		except:
+			traceback.print_exc()
+
+
+	def time_months(self):
+		""" Gets total time spent + time spent each month """
+		try:
+			if self.__file_exists(): # File exists
+				timestamps = self.__load_json()
+				if len(timestamps) > 0:
+					first_date = self.__string_to_date(timestamps[0]['datetime']) # Date of a first timestamp
+					if len(timestamps) % 2 == 0:
+						last_date = self.__string_to_date(timestamps[-1]['datetime']) # Date of a last timestamp
+					else:
+						last_date = datetime.date.today()
+					total = datetime.timedelta() # Total time spent
+					last_timestamp = None
+					current_month_first_day = datetime.date(first_date.year, first_date.month, 1) # First day of the current month
+					while current_month_first_day.year <= last_date.year and current_month_first_day.month <= last_date.month:
+						current_month_days = calendar.monthrange(current_month_first_day.year, current_month_first_day.month)[1] # Numer of months in the current month
+						current_month_last_day = datetime.date(current_month_first_day.year, current_month_first_day.month, current_month_days) # Last day of the current month
+						current_month_timestamps = self.__get_timestamps_within_date_span(timestamps, current_month_first_day, current_month_last_day) # Timestamps from the current month
+						calculated_days = self.__calculate_days(current_month_timestamps, current_month_first_day, current_month_last_day, last_timestamp) # Calculating this month's total time spent
+						current_month_total = calculated_days[0]
+						last_timestamp = calculated_days[1]
+						if not current_month_total == datetime.timedelta(): # Printing out day total (if its not zero)
+							total += current_month_total
+							self.__print_space("# " + calendar.month_name[current_month_first_day.month] + " " + str(current_month_first_day.year) + " :: " + self.__delta_to_time_string(current_month_total))
+						current_month_first_day = current_month_last_day + datetime.timedelta(days=1)
 					if len(timestamps) % 2 == 1:
 						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
 					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
@@ -308,15 +345,16 @@ class Timer:
 
 	# List of all commands (with description and a pointer to a function)
 	commands = {
-		'help':    {'description': 'shows all usable commands',               'function': show_commands    },
-		'status':  {'description': 'shows basic information about the file',  'function': get_status       },
-		'start':   {'description': 'creates new "start" timestamp',           'function': start_timestamp  },
-		'stop':    {'description': 'creates new "stop" timestamp',            'function': stop_timestamp   },
-		'terms':   {'description': 'calculates time spent (start to stop)',   'function': time_terms       },
-		'days':    {'description': 'calculates time spent (day by day)',      'function': time_days        },
-		'erase':   {'description': 'removes last timestamp',                  'function': erase_last       },
-		'delete':  {'description': 'deletes the whole file',                  'function': delete_file      },
-		'exit':    {'description': 'exits the app',                           'function': sys.exit         }
+		'help':    {'description': 'shows all usable commands',                   'function': show_commands    },
+		'status':  {'description': 'shows basic information about the file',      'function': get_status       },
+		'start':   {'description': 'creates new "start" timestamp',               'function': start_timestamp  },
+		'stop':    {'description': 'creates new "stop" timestamp',                'function': stop_timestamp   },
+		'terms':   {'description': 'calculates time spent (between timestamps)',  'function': time_terms       },
+		'days':    {'description': 'calculates time spent (day by day)',          'function': time_days        },
+		'months':  {'description': 'calculates time spent (each month)',          'function': time_months      },
+		'erase':   {'description': 'removes last timestamp',                      'function': erase_last       },
+		'delete':  {'description': 'deletes the whole file',                      'function': delete_file      },
+		'exit':    {'description': 'exits the app',                               'function': sys.exit         }
 	}
 
 
