@@ -63,12 +63,12 @@ class Timer:
 		return output
 	
 
-	def __file_exists(self):
+	def file_exists(self):
 		""" Checks if file containing timestamps exists """
 		return os.path.isfile(self.absolute_filepath)
 
 
-	def __load_json(self):
+	def load_json(self):
 		""" Loading data from json file into list """
 		try:
 			f = open(self.absolute_filepath, "r") # File
@@ -103,8 +103,8 @@ class Timer:
 	def get_status(self):
 		""" Gets basic information about the file """
 		try:
-			if self.__file_exists(): # File exists
-				timestamps = self.__load_json()
+			if self.file_exists(): # File exists
+				timestamps = self.load_json()
 				if len(timestamps) > 0: # Printing out first timestamp
 					self.__print_space('First timestamp: ' + str(timestamps[0]) + ' from ' + str(datetime.datetime.now() - self.__string_to_datetime(timestamps[0]['datetime'])).split(".")[0] + ' ago')
 					if len(timestamps) > 1: # Printing out last timestamp
@@ -128,7 +128,7 @@ class Timer:
 			timestamps.append(timestamp)
 			self.__print_space('New timestamp: ' + str(timestamp))
 			self.__save_json(timestamps)
-			self.__load_json()
+			self.load_json()
 		except:
 			traceback.print_exc()
 
@@ -136,7 +136,7 @@ class Timer:
 	def start_timestamp(self):
 		""" Attempts to create a new start timestamp """
 		try:
-			timestamps = self.__load_json()
+			timestamps = self.load_json()
 			if len(timestamps) > 0:
 				if timestamps[-1]['type'] == 'start':
 					self.__print_space('File cannot contain two same consecutive timestamps.')
@@ -151,7 +151,7 @@ class Timer:
 	def stop_timestamp(self):
 		""" Attempts to create a new stop timestamp """
 		try:
-			timestamps = self.__load_json()
+			timestamps = self.load_json()
 			if len(timestamps) > 0:
 				if timestamps[-1]['type'] == 'stop':
 					self.__print_space('File cannot contain two same consecutive timestamps.')
@@ -241,8 +241,8 @@ class Timer:
 	def time_terms(self):
 		""" Gets total time spent + time spent between start and stop timestamps """
 		try:
-			if self.__file_exists(): # File exists
-				timestamps = self.__load_json()
+			if self.file_exists(): # File exists
+				timestamps = self.load_json()
 				if len(timestamps) > 0:
 					total = self.__calculate_terms(timestamps, True) # Calculates total time in terms
 					if len(timestamps) % 2 == 1:
@@ -259,8 +259,8 @@ class Timer:
 	def time_days(self):
 		""" Gets total time spent + time day by day """
 		try:
-			if self.__file_exists(): # File exists
-				timestamps = self.__load_json()
+			if self.file_exists(): # File exists
+				timestamps = self.load_json()
 				if len(timestamps) > 0:
 					first_date = self.__string_to_date(timestamps[0]['datetime']) # Date of a first timestamp
 					if len(timestamps) % 2 == 0:
@@ -282,8 +282,8 @@ class Timer:
 	def time_months(self):
 		""" Gets total time spent + time spent each month """
 		try:
-			if self.__file_exists(): # File exists
-				timestamps = self.__load_json()
+			if self.file_exists(): # File exists
+				timestamps = self.load_json()
 				if len(timestamps) > 0:
 					first_date = self.__string_to_date(timestamps[0]['datetime']) # Date of a first timestamp
 					if len(timestamps) % 2 == 0:
@@ -323,12 +323,12 @@ class Timer:
 	def erase_last(self):
 		""" Erases last timestamp from file """
 		try:
-			if self.__file_exists(): # File exists
-				timestamps = self.__load_json()
+			if self.file_exists(): # File exists
+				timestamps = self.load_json()
 				if len(timestamps) > 0:
 					del timestamps[-1]
 					self.__save_json(timestamps)
-					self.__load_json()
+					self.load_json()
 				else:
 					self.__print_space('This file doesn\'t have any timestamps.')
 			else:
@@ -340,7 +340,7 @@ class Timer:
 	def delete_file(self):
 		""" Removing file """
 		try:
-			if self.__file_exists(): # File exists
+			if self.file_exists(): # File exists
 				os.remove(self.absolute_filepath)
 				self.__print_space('File "' + self.file_name + '" removed.')
 			else:
