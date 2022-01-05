@@ -223,7 +223,7 @@ class Timer:
 			# Checking if there is an unclosed term left from today
 			next_day = (self.__date_to_datetime(current_date) + datetime.timedelta(days=1)).date() # Next day (midnight)
 			if not last_timestamp == None and last_timestamp['type'] == 'start' and self.__string_to_date(last_timestamp['datetime']) == current_date:
-				if current_date == last_date:
+				if current_date == last_date and last_date == datetime.datetime.now().date():
 					day_total += datetime.datetime.now() - self.__string_to_datetime(last_timestamp['datetime'])
 				else:
 					day_total += self.__date_to_datetime(next_day) - self.__string_to_datetime(last_timestamp['datetime'])
@@ -294,7 +294,7 @@ class Timer:
 					last_timestamp = None
 					current_first_day = datetime.date(first_date.year, first_date.month, 1) # First day of the current month
 					message_id = 1
-					while current_first_day.year <= last_date.year and current_first_day.month <= last_date.month:
+					while (current_first_day.year < last_date.year) or (current_first_day.year == last_date.year and current_first_day.month <= last_date.month):
 						current_days = calendar.monthrange(current_first_day.year, current_first_day.month)[1] # Looping through each month
 						current_last_day = datetime.date(current_first_day.year, current_first_day.month, current_days) # Last day of the current month
 						current_timestamps = self.__get_timestamps_within_date_span(timestamps, current_first_day, current_last_day) # Timestamps from the current month
