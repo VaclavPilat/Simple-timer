@@ -30,14 +30,14 @@ def inactive():
 
 def start_timestamp():
     timer.start_timestamp()
-    timestamps = timer.load_json()
+    timestamps = timer.load()
     if len(timestamps) > 0 and timestamps[-1]["type"] == "start":
         active()
 
 
 def stop_timestamp():
     timer.stop_timestamp()
-    timestamps = timer.load_json()
+    timestamps = timer.load()
     if len(timestamps) > 0 and timestamps[-1]["type"] == "stop":
         inactive()
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     stop.triggered.connect(stop_timestamp)
     menu.addAction(stop)
     # Showing widgets based on file contents
-    timestamps = timer.load_json()
+    timestamps = timer.load()
     if len(timestamps) > 0 and timestamps[-1]["type"] == "start":
         active()
     else:

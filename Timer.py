@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""
-                __                                                                            __           
-               /_/                                                                           /_/           
-  _     __   ___      _____      __        ___    _     __         ____     __   __        ___    _________
- | |   / /  /   |    / ___/     / /       /   |  | |   / /        / __ \   / /  / /       /   |  /___  ___/
- | |  / /  / /| |   / /        / /       / /| |  | |  / /        / /_/ /  / /  / /       / /| |     / /    
- | | / /  / /_| |  | |        / /       / /_| |  | | / /        / ____/  / /  / /       / /_| |    / /     
- | |/ /  / ____ |  | |___    / /___    / ____ |  | |/ /        / /      / /  / /____   / ____ |   / /      
- |___/  /_/   |_|   \____/  /______/  /_/   |_|  |___/        /_/      /_/  /______/  /_/   |_|  /_/       
-"""
-
-
-# Importing modules
 import sys, os, json, datetime, calendar, traceback, math
 
 
@@ -28,9 +15,13 @@ class Timer:
 	datetime_format = date_format + ' ' + time_format # Datetime format
 
 
-	def __print_space(self, message):
-		""" Prints a message with spacing """
-		print('   ' + str(message))
+	def printspace(self, text):
+		"""Prints a text with spacing
+
+		Args:
+			text (str): Message to print out
+		"""
+		print(' '*3 + str(text))
 
 
 	def __string_to_datetime(self, string):
@@ -76,56 +67,68 @@ class Timer:
 		return output
 	
 
-	def file_exists(self):
-		""" Checks if file containing timestamps exists """
+	def exists(self):
+		"""Checks if file containing timestamps exists
+
+		Returns:
+			bool: Does file exist?
+		"""
 		return os.path.isfile(self.absolute_filepath)
 
 
-	def load_json(self):
-		""" Loading data from json file into list """
+	def load(self):
+		"""Loading data from json file into list
+
+		Returns:
+			list: List of timestamps
+		"""
 		try:
-			f = open(self.absolute_filepath, "r") # File
-			timestamps = json.loads(f.read()) # List
-			f.close()
+			with open(self.absolute_filepath, "r") as f:
+				timestamps = json.loads(f.read())
 		except:
-			self.__print_space('Cannot load timestamps from file. An empty list is used instead.')
+			self.printspace('Cannot load timestamps from file. An empty list is used instead.')
 			timestamps = []
 		else:
-			self.__print_space('File "' + self.file_name + '" contains ' + str(len(timestamps)) + ' timestamps.')
+			self.printspace('File "' + self.file_name + '" contains ' + str(len(timestamps)) + ' timestamps.')
 		return timestamps
 
 
-	def __save_json(self, timestamps):
-		""" Saving data from list into json file """
+	def save(self, timestamps):
+		"""Saving data from list into json file
+
+		Args:
+			timestamps (list): List of timestamps
+		"""
 		try:
-			f = open(self.absolute_filepath, "w") # File
-			f.truncate()
-			f.write(json.dumps(timestamps, indent=4, sort_keys=False))
-			f.close()
-			self.__print_space('File content has been replaced with new data.')
+			with open(self.absolute_filepath, "w") as f:
+				f.truncate()
+				f.write(json.dumps(timestamps, indent=4, sort_keys=False))
+			self.printspace('File content has been replaced with new data.')
 		except:
 			traceback.print_exc()
 
 
-	def show_commands(self):
-		""" Printing out usable commands """
+	def print_commands(self):
+		"""Printing out usable commands
+		"""
 		for command in self.commands:
-			self.__print_space(command + ' - ' + self.commands[command]['description'])
+			self.printspace(command + ' - ' + self.commands[command]['description'])
 
 
-	def get_status(self):
-		""" Gets basic information about the file """
+	def print_status(self):
+		"""Gets basic information about the file and prints it out
+		"""
 		try:
-			if self.file_exists(): # File exists
-				timestamps = self.load_json()
+			if self.exists(): # File exists
+				timestamps = self.load()
 				if len(timestamps) > 0: # Printing out first timestamp
-					self.__print_space('First timestamp: ' + str(timestamps[0]) + ' from ' + str(datetime.datetime.now() - self.__string_to_datetime(timestamps[0]['datetime'])).split(".")[0] + ' ago')
+					self.printspace('First timestamp: ' + str(timestamps[0]) + ' from ' + str(datetime.datetime.now() - self.__string_to_datetime(timestamps[0]['datetime'])).split(".")[0] + ' ago')
 					if len(timestamps) > 1: # Printing out last timestamp
-						self.__print_space('Last timestamp: ' + str(timestamps[-1]) + ' from ' + str(datetime.datetime.now() - self.__string_to_datetime(timestamps[-1]['datetime'])).split(".")[0] + ' ago')
+						self.printspace('Last timestamp: ' + str(timestamps[-1]) + ' from ' + str(datetime.datetime.now() - self.__string_to_datetime(timestamps[-1]['datetime'])).split(".")[0] + ' ago')
 					if timestamps[-1]['type'] == 'start':
-						self.__print_space('File doesn\'t end with a stop timestamp. Calculations will use current time instead.')
+						self.printspace('File doesn\'t end with a stop timestamp. Calculations will use current time instead.')
 			else: # File doesn't exist
-				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+				self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 		except:
 			traceback.print_exc()
 
@@ -139,9 +142,9 @@ class Timer:
 				'datetime': datetime.datetime.now().strftime(self.datetime_format)
 			}
 			timestamps.append(timestamp)
-			self.__print_space('New timestamp: ' + str(timestamp))
-			self.__save_json(timestamps)
-			self.load_json()
+			self.printspace('New timestamp: ' + str(timestamp))
+			self.save(timestamps)
+			self.load()
 		except:
 			traceback.print_exc()
 
@@ -149,10 +152,10 @@ class Timer:
 	def start_timestamp(self):
 		""" Attempts to create a new start timestamp """
 		try:
-			timestamps = self.load_json()
+			timestamps = self.load()
 			if len(timestamps) > 0:
 				if timestamps[-1]['type'] == 'start':
-					self.__print_space('File cannot contain two same consecutive timestamps.')
+					self.printspace('File cannot contain two same consecutive timestamps.')
 				else:
 					self.__new_timestamp('start', timestamps)
 			else:
@@ -164,14 +167,14 @@ class Timer:
 	def stop_timestamp(self):
 		""" Attempts to create a new stop timestamp """
 		try:
-			timestamps = self.load_json()
+			timestamps = self.load()
 			if len(timestamps) > 0:
 				if timestamps[-1]['type'] == 'stop':
-					self.__print_space('File cannot contain two same consecutive timestamps.')
+					self.printspace('File cannot contain two same consecutive timestamps.')
 				else:
 					self.__new_timestamp('stop', timestamps)
 			else:
-				self.__print_space('File has to start with a "start" timestamp.')
+				self.printspace('File has to start with a "start" timestamp.')
 		except:
 			traceback.print_exc()
 
@@ -203,7 +206,7 @@ class Timer:
 			total += delta # Adding current delta to total time
 			delta_string = self.__delta_to_time_string(delta)
 			if printing:
-				self.__print_space('[' + str(int(i/2 + 1)) + '] ' + str(start.strftime(self.datetime_format)) + " - " + str(stop.strftime(self.datetime_format)) + ' :: ' + delta_string)
+				self.printspace('[' + str(int(i/2 + 1)) + '] ' + str(start.strftime(self.datetime_format)) + " - " + str(stop.strftime(self.datetime_format)) + ' :: ' + delta_string)
 		return total
 
 
@@ -243,7 +246,7 @@ class Timer:
 			if not day_total == datetime.timedelta() or self.display_empty: # Printing out day total
 				timespan_total += day_total
 				if printing == True:
-					self.__print_space('[' + str(message_id) + '] ' + str(current_date.strftime(self.date_format)) + ' :: ' + self.__delta_to_time_string(day_total))
+					self.printspace('[' + str(message_id) + '] ' + str(current_date.strftime(self.date_format)) + ' :: ' + self.__delta_to_time_string(day_total))
 				if current_date == datetime.date.today(): # Breaking the loop if there aren't any timestamps left (necessary for months calculations)
 					break
 				message_id += 1
@@ -254,17 +257,17 @@ class Timer:
 	def time_terms(self):
 		""" Gets total time spent + time spent between start and stop timestamps """
 		try:
-			if self.file_exists(): # File exists
-				timestamps = self.load_json()
+			if self.exists(): # File exists
+				timestamps = self.load()
 				if len(timestamps) > 0:
 					total = self.__calculate_terms(timestamps, True) # Calculates total time in terms
 					if len(timestamps) % 2 == 1:
-						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
-					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
+						self.printspace('File doesn\'t end with a stop timestamp. Current time was used instead.')
+					self.printspace('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
 				else:
-					self.__print_space('This file doesn\'t have any timestamps. Cannot perform any calculations.')
+					self.printspace('This file doesn\'t have any timestamps. Cannot perform any calculations.')
 			else:
-				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+				self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 		except:
 			traceback.print_exc()
 
@@ -272,8 +275,8 @@ class Timer:
 	def time_days(self):
 		""" Gets total time spent + time day by day """
 		try:
-			if self.file_exists(): # File exists
-				timestamps = self.load_json()
+			if self.exists(): # File exists
+				timestamps = self.load()
 				if len(timestamps) > 0:
 					first_date = self.__string_to_date(timestamps[0]['datetime']) # Date of a first timestamp
 					if len(timestamps) % 2 == 0:
@@ -282,12 +285,12 @@ class Timer:
 						last_date = datetime.date.today()
 					total = self.__calculate_days(timestamps, first_date, last_date, None, True)[0] # Total time spent
 					if len(timestamps) % 2 == 1:
-						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
-					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
+						self.printspace('File doesn\'t end with a stop timestamp. Current time was used instead.')
+					self.printspace('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
 				else:
-					self.__print_space('This file doesn\'t have any timestamps. Cannot perform any calculations.')
+					self.printspace('This file doesn\'t have any timestamps. Cannot perform any calculations.')
 			else:
-				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+				self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 		except:
 			traceback.print_exc()
 
@@ -295,8 +298,8 @@ class Timer:
 	def time_months(self):
 		""" Gets total time spent + time spent each month """
 		try:
-			if self.file_exists(): # File exists
-				timestamps = self.load_json()
+			if self.exists(): # File exists
+				timestamps = self.load()
 				if len(timestamps) > 0:
 					first_date = self.__string_to_date(timestamps[0]['datetime']) # Date of a first timestamp
 					if len(timestamps) % 2 == 0:
@@ -319,16 +322,16 @@ class Timer:
 						last_timestamp = calculated_days[1]
 						if not current_total == datetime.timedelta() or self.display_empty: # Printing out month total
 							total += current_total
-							self.__print_space('[' + str(message_id) + '] ' + calendar.month_name[current_first_day.month] + " " + str(current_first_day.year) + " :: " + self.__delta_to_time_string(current_total))
+							self.printspace('[' + str(message_id) + '] ' + calendar.month_name[current_first_day.month] + " " + str(current_first_day.year) + " :: " + self.__delta_to_time_string(current_total))
 							message_id += 1
 						current_first_day = current_last_day + datetime.timedelta(days=1)
 					if len(timestamps) % 2 == 1:
-						self.__print_space('File doesn\'t end with a stop timestamp. Current time was used instead.')
-					self.__print_space('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
+						self.printspace('File doesn\'t end with a stop timestamp. Current time was used instead.')
+					self.printspace('TOTAL TIME SPENT: ' + self.__delta_to_time_string(total))
 				else:
-					self.__print_space('This file doesn\'t have any timestamps. Cannot perform any calculations.')
+					self.printspace('This file doesn\'t have any timestamps. Cannot perform any calculations.')
 			else:
-				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+				self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 		except:
 			traceback.print_exc()
 
@@ -336,69 +339,78 @@ class Timer:
 	def erase_last(self):
 		""" Erases last timestamp from file """
 		try:
-			if self.file_exists(): # File exists
-				timestamps = self.load_json()
+			if self.exists(): # File exists
+				timestamps = self.load()
 				if len(timestamps) > 0:
 					del timestamps[-1]
-					self.__save_json(timestamps)
-					self.load_json()
+					self.save(timestamps)
+					self.load()
 				else:
-					self.__print_space('This file doesn\'t have any timestamps.')
+					self.printspace('This file doesn\'t have any timestamps.')
 			else:
-				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+				self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 		except:
 			traceback.print_exc()
 
 
-	def delete_file(self):
-		""" Removing file """
+	def delete(self):
+		"""Removing file
+		"""
 		try:
-			if self.file_exists(): # File exists
+			if self.exists(): # File exists
 				os.remove(self.absolute_filepath)
-				self.__print_space('File "' + self.file_name + '" removed.')
+				self.printspace('File "' + self.file_name + '" removed.')
 			else:
-				self.__print_space('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
+				self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 		except:
 			traceback.print_exc()
 
 
 	# List of all commands (with description and a pointer to a function)
 	commands = {
-		'help':    {'description': 'shows all usable commands',                   'function': show_commands    },
-		'status':  {'description': 'shows basic information about the file',      'function': get_status       },
+		'help':    {'description': 'shows all usable commands',                   'function': print_commands    },
+		'status':  {'description': 'shows basic information about the file',      'function': print_status       },
 		'start':   {'description': 'creates new "start" timestamp',               'function': start_timestamp  },
 		'stop':    {'description': 'creates new "stop" timestamp',                'function': stop_timestamp   },
 		'terms':   {'description': 'calculates time spent (between timestamps)',  'function': time_terms       },
 		'days':    {'description': 'calculates time spent (day by day)',          'function': time_days        },
 		'months':  {'description': 'calculates time spent (each month)',          'function': time_months      },
 		'erase':   {'description': 'removes last timestamp',                      'function': erase_last       },
-		'delete':  {'description': 'deletes the whole file',                      'function': delete_file      },
+		'delete':  {'description': 'deletes the whole file',                      'function': delete      },
 		'exit':    {'description': 'exits the app',                               'function': sys.exit         }
 	}
 
 
-	def __execute_command(self, command):
-		""" Attempt to execute a command from list of commands"""
+	def execute(self, command):
+		"""Attempt to execute a command from list of commands
+
+		Args:
+			command (str): Command name
+		"""
 		if command in self.commands:
 			self.commands[command]['function'](self) # Calling a function stored in selected command
 		else:
-			self.__print_space('Command "' + command + '" doesn\'t exist. Use "help" to get list of all commands.')
+			self.printspace('Command "' + command + '" doesn\'t exist. Use "help" to get list of all commands.')
 		print()
 
 
-	def execute_commands(self, args):
-		""" Main function, asks for commands and executes them """
+	def main(self, args):
+		"""Main function, asks for commands and executes them
+
+		Args:
+			args (list): List of commands
+		"""
 		try:
 			if len(args) > 1: # Executes arguments (if exist)
 				for argument in sys.argv[1:]:
-					self.__execute_command(argument)
-				self.__execute_command('exit')
+					self.execute(argument)
+				self.execute('exit')
 			else: # Asking for commands
 				print('Usable commands:')
-				self.__execute_command('help')
+				self.execute('help')
 				while True:
 					command = input('Enter command: ')
-					self.__execute_command(command)
+					self.execute(command)
 		except (SystemExit, KeyboardInterrupt):
 			pass
 		except:
@@ -407,4 +419,4 @@ class Timer:
 
 if __name__ == '__main__':
 	timer = Timer()
-	timer.execute_commands(sys.argv)
+	timer.main(sys.argv)
