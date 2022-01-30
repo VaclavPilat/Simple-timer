@@ -12,7 +12,7 @@
 
 
 # Importing modules
-import sys, os, json, datetime, calendar, traceback
+import sys, os, json, datetime, calendar, traceback, math
 
 
 class Timer:
@@ -50,6 +50,7 @@ class Timer:
 
 	def __delta_to_time_string(self, delta):
 		""" Gets a formatted string from a deltatime object """
+		# Hours
 		hours, remaining_seconds = divmod(delta.seconds, 3600)
 		minutes, seconds = divmod(remaining_seconds, 60)
 		hours += delta.days * 24
@@ -59,7 +60,19 @@ class Timer:
 		output += str(minutes) + ':'
 		if len(str(seconds)) == 1:
 			output += "0"
-		output += str(seconds) + ' = ' + str(round(((delta.days * 24 * 60 * 60) + delta.seconds) / 3600, 5)) + ' hours'
+		# Hours (decimal)
+		hours_decimal = ((delta.days * 24 * 60 * 60) + delta.seconds) / 3600
+		output += str(seconds) + ' = ' + str(round(hours_decimal, 5)) + ' hours'
+		# Approximated hours (decimal)
+		output += ' ≈ '
+		hours_decimal_rest = (hours_decimal - math.floor(hours_decimal))
+		if hours_decimal_rest < 0.25:
+			output += str(math.floor(hours_decimal))
+		elif hours_decimal_rest < 0.75:
+			output += str(math.floor(hours_decimal) + 0.5)
+		else:
+			output += str(math.floor(hours_decimal) + 1)
+		output += " hours"
 		return output
 	
 
