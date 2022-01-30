@@ -2,6 +2,15 @@
 import sys, os, json, datetime, calendar, traceback, math
 
 
+def trycatch(function, *args):
+	def inner(*args):
+		try:
+			function(*args)
+		except:
+			traceback.print_exc()
+	return function
+
+
 class Timer:
 
 	file_name = 'timestamps.json' # Json file that contains timestamps
@@ -15,6 +24,7 @@ class Timer:
 	datetime_format = date_format + ' ' + time_format # Datetime format
 
 
+	@trycatch
 	def printspace(self, text):
 		"""Prints a text with spacing
 
@@ -67,6 +77,7 @@ class Timer:
 		return output
 	
 
+	@trycatch
 	def exists(self):
 		"""Checks if file containing timestamps exists
 
@@ -76,6 +87,7 @@ class Timer:
 		return os.path.isfile(self.absolute_filepath)
 
 
+	@trycatch
 	def load(self):
 		"""Loading data from json file into list
 
@@ -93,21 +105,20 @@ class Timer:
 		return timestamps
 
 
+	@trycatch
 	def save(self, timestamps):
 		"""Saving data from list into json file
 
 		Args:
 			timestamps (list): List of timestamps
 		"""
-		try:
-			with open(self.absolute_filepath, "w") as f:
-				f.truncate()
-				f.write(json.dumps(timestamps, indent=4, sort_keys=False))
-			self.printspace('File content has been replaced with new data.')
-		except:
-			traceback.print_exc()
+		with open(self.absolute_filepath, "w") as f:
+			f.truncate()
+			f.write(json.dumps(timestamps, indent=4, sort_keys=False))
+		self.printspace('File content has been replaced with new data.')
 
 
+	@trycatch
 	def print_commands(self):
 		"""Printing out usable commands
 		"""
@@ -115,22 +126,20 @@ class Timer:
 			self.printspace(command + ' - ' + self.commands[command]['description'])
 
 
+	@trycatch
 	def print_status(self):
 		"""Gets basic information about the file and prints it out
 		"""
-		try:
-			if self.exists(): # File exists
-				timestamps = self.load()
-				if len(timestamps) > 0: # Printing out first timestamp
-					self.printspace('First timestamp: ' + str(timestamps[0]) + ' from ' + str(datetime.datetime.now() - self.__string_to_datetime(timestamps[0]['datetime'])).split(".")[0] + ' ago')
-					if len(timestamps) > 1: # Printing out last timestamp
-						self.printspace('Last timestamp: ' + str(timestamps[-1]) + ' from ' + str(datetime.datetime.now() - self.__string_to_datetime(timestamps[-1]['datetime'])).split(".")[0] + ' ago')
-					if timestamps[-1]['type'] == 'start':
-						self.printspace('File doesn\'t end with a stop timestamp. Calculations will use current time instead.')
-			else: # File doesn't exist
-				self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
-		except:
-			traceback.print_exc()
+		if self.exists(): # File exists
+			timestamps = self.load()
+			if len(timestamps) > 0: # Printing out first timestamp
+				self.printspace('First timestamp: ' + str(timestamps[0]) + ' from ' + str(datetime.datetime.now() - self.__string_to_datetime(timestamps[0]['datetime'])).split(".")[0] + ' ago')
+				if len(timestamps) > 1: # Printing out last timestamp
+					self.printspace('Last timestamp: ' + str(timestamps[-1]) + ' from ' + str(datetime.datetime.now() - self.__string_to_datetime(timestamps[-1]['datetime'])).split(".")[0] + ' ago')
+				if timestamps[-1]['type'] == 'start':
+					self.printspace('File doesn\'t end with a stop timestamp. Calculations will use current time instead.')
+		else: # File doesn't exist
+			self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 
 
 	def __new_timestamp(self, type, timestamps):
@@ -336,34 +345,31 @@ class Timer:
 			traceback.print_exc()
 
 
-	def erase_last(self):
-		""" Erases last timestamp from file """
-		try:
-			if self.exists(): # File exists
-				timestamps = self.load()
-				if len(timestamps) > 0:
-					del timestamps[-1]
-					self.save(timestamps)
-					self.load()
-				else:
-					self.printspace('This file doesn\'t have any timestamps.')
+	@trycatch
+	def erase(self):
+		"""Erases last timestamp from file
+		"""
+		if self.exists(): # File exists
+			timestamps = self.load()
+			if len(timestamps) > 0:
+				del timestamps[-1]
+				self.save(timestamps)
+				self.load()
 			else:
-				self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
-		except:
-			traceback.print_exc()
+				self.printspace('This file doesn\'t have any timestamps.')
+		else:
+			self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 
 
+	@trycatch
 	def delete(self):
 		"""Removing file
 		"""
-		try:
-			if self.exists(): # File exists
-				os.remove(self.absolute_filepath)
-				self.printspace('File "' + self.file_name + '" removed.')
-			else:
-				self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
-		except:
-			traceback.print_exc()
+		if self.exists(): # File exists
+			os.remove(self.absolute_filepath)
+			self.printspace('File "' + self.file_name + '" removed.')
+		else:
+			self.printspace('File "' + self.file_name + '" doesn\'t exist. Making a new "start" timestamp will create it.')
 
 
 	# List of all commands (with description and a pointer to a function)
@@ -375,12 +381,13 @@ class Timer:
 		'terms':   {'description': 'calculates time spent (between timestamps)',  'function': time_terms       },
 		'days':    {'description': 'calculates time spent (day by day)',          'function': time_days        },
 		'months':  {'description': 'calculates time spent (each month)',          'function': time_months      },
-		'erase':   {'description': 'removes last timestamp',                      'function': erase_last       },
+		'erase':   {'description': 'removes last timestamp',                      'function': erase       },
 		'delete':  {'description': 'deletes the whole file',                      'function': delete      },
 		'exit':    {'description': 'exits the app',                               'function': sys.exit         }
 	}
 
 
+	@trycatch
 	def execute(self, command):
 		"""Attempt to execute a command from list of commands
 
