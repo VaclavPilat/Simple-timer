@@ -19,5 +19,11 @@ class Tests(unittest.TestCase):
         self.assertEqual(Timer().folderName, "test")
 
 
+    def test_checkFolderPath(self):
+        """Checking if folder path to timestamp directory is correct
+        """
+        self.assertEqual(Timer().getFolderPath(), os.path.join(os.path.dirname(__file__), "test"))
+
+
 if __name__ == '__main__':
     unittest.main()
