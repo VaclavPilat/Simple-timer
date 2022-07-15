@@ -12,5 +12,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(Timer(), Timer())
 
 
+    def test_changeFolderName(self):
+        """Try to change default folder name
+        """
+        Timer().folderName = "test"
+        self.assertEqual(Timer().folderName, "test")
+
+
 if __name__ == '__main__':
     unittest.main()

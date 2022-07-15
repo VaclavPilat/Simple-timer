@@ -6,6 +6,9 @@ class Timer(object):
     """
 
 
+    folderName = "timestamps"
+
+
     def __new__(cls):
         """Creating class instance
 
