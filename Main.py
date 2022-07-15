@@ -36,7 +36,7 @@ def exit():
 
 # List of all commands (with description and a pointer to a function)
 commandList = {
-    ("help", "command", "commands", "list"): "Prints list of usable commands",
+    ("help", "cmd", "command", "commands"): "Prints list of usable commands",
     ("exit", "quit"): "Exits the application"
 }
 
@@ -54,7 +54,7 @@ def execute(command: str):
             print()
             return
     # Message in case the command is not found
-    prints("Command not found, use '' to list all usable commands.")
+    prints("Command not found, use '" + list(commandList.keys())[0][0] + "' to list all usable commands.")
     print()
 
 
