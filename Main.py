@@ -18,9 +18,14 @@ def prints(text: str):
 def help():
     """Prints out all usable commands
     """
-    maxLength = len(max(commandList, key = len))
-    for command, description in commandList.items():
-        prints(command.ljust(maxLength) + " : " + description)
+    # Getting length of the longest key
+    maxLength = 0
+    for commands in list(commandList.keys()):
+        if len(commands[0]) > maxLength:
+            maxLength = len(commands[0])
+    # Printing commands
+    for commands, description in commandList.items():
+        prints(commands[0].ljust(maxLength) + " - " + description)
 
 
 def exit():
@@ -31,8 +36,8 @@ def exit():
 
 # List of all commands (with description and a pointer to a function)
 commandList = {
-    "help": "Prints all usable commands",
-    "exit": "Exits the application"
+    ("help", "command", "commands", "list"): "Prints list of usable commands",
+    ("exit", "quit"): "Exits the application"
 }
 
 
@@ -42,10 +47,14 @@ def execute(command: str):
     Args:
         command (str): Command to run
     """
-    if command in commandList:
-        getattr(sys.modules[__name__], command)()
-    else:
-        prints("Command not found")
+    # Searcing list of commands
+    for commands in list(commandList.keys()):
+        if command in commands:
+            getattr(sys.modules[__name__], commands[0])()
+            print()
+            return
+    # Message in case the command is not found
+    prints("Command not found, use '' to list all usable commands.")
     print()
 
 
