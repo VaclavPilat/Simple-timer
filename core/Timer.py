@@ -135,7 +135,9 @@ class Timer(object):
         if cls.fileExists():
             return json.load(open(cls.getFilePath(), "r"))
         else:
-            return []
+            timestamps = []
+            cls.saveTimestamps(timestamps)
+            return timestamps
 
 
     def saveTimestamps(cls, timestamps: list) -> bool:
