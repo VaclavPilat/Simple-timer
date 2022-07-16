@@ -79,3 +79,21 @@ class Timer(object):
             bool: Does the file exist?
         """
         return os.path.isfile(cls.getFilePath())
+    
+
+    def createFile(cls):
+        """Create a file for timestamps
+        """
+        if not cls.fileExists():
+            with open(cls.getFilePath(), 'w'):
+                pass
+    
+
+    def deleteFile(cls):
+        """Removing timestamp file
+        """
+        if cls.fileExists():
+            os.remove(cls.getFilePath())
+    
+
+    #########################################################################################
