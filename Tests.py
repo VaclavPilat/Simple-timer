@@ -23,6 +23,18 @@ class Tests(unittest.TestCase):
         """Checking if folder path to timestamp directory is correct
         """
         self.assertEqual(Timer().getFolderPath(), os.path.join(os.path.dirname(__file__), "test"))
+    
+
+    def test_createFolder(self):
+        """Checking if it is possible to create a folder for timestamps
+        """
+        try:
+            os.rmdir(os.path.join(os.path.dirname(__file__), "test"))
+        except FileNotFoundError:
+            pass
+        self.assertFalse(Timer().folderExists())
+        Timer().createFolder()
+        self.assertTrue(Timer().folderExists())
 
 
 if __name__ == '__main__':

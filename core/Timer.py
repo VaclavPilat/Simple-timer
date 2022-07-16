@@ -25,6 +25,21 @@ class Timer(object):
         """Returns path to folder for timestamps
 
         Returns:
-            str: _description_
+            str: Folder path
         """
         return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, cls.folderName))
+    
+
+    def folderExists(cls) -> bool:
+        """Checks if folder for timestamps exists
+
+        Returns:
+            bool: Does folder exist?
+        """
+        return os.path.isdir(cls.getFolderPath())
+    
+
+    def createFolder(cls):
+        """Attempts to create a folder for timestamps
+        """
+        os.mkdir(cls.getFolderPath())
