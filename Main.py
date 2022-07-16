@@ -34,9 +34,29 @@ def exit():
     sys.exit()
 
 
+def start():
+    """Adding new START timestamp to file
+    """
+    if Timer().startTimestamp():
+        prints("New START timestamp added. Calculations will use current time as end of this term.")
+    else:
+        prints("New START timestamp could not be added. Make sure that timestamp types alternate.")
+
+
+def stop():
+    """Adding new STOP timestamp to file
+    """
+    if Timer().stopTimestamp():
+        prints("New STOP timestamp added.")
+    else:
+        prints("New STOP timestamp could not be added. Make sure that timestamp types alternate.")
+
+
 # List of all commands (with description and a pointer to a function)
 commandList = {
     ("help", "cmd", "command", "commands"): "Prints list of usable commands",
+    ("start", "begin"): "Adds new START timestamp",
+    ("stop", "end"): "Adds new STOP timestamp",
     ("exit", "quit"): "Exits the application"
 }
 

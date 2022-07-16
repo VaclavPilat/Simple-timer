@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, shutil, json
+import os, shutil, json, time
 
 
 class Timer(object):
@@ -156,3 +156,33 @@ class Timer(object):
     
 
     #########################################################################################
+
+
+    def startTimestamp(cls) -> bool:
+        """Attempts to add a start timestamp
+
+        Returns:
+            bool: Success?
+        """
+        timestamps = cls.loadTimestamps()
+        if len(timestamps) % 2 == 0:
+            timestamps.append({"id": len(timestamps) + 1, "type": "start", "timestamp": time.time()})
+            Timer().saveTimestamps(timestamps)
+            return True
+        else:
+            return False
+
+
+    def stopTimestamp(cls) -> bool:
+        """Attempts to add a stop timestamp
+
+        Returns:
+            bool: Success?
+        """
+        timestamps = cls.loadTimestamps()
+        if len(timestamps) % 2 == 1:
+            timestamps.append({"id": len(timestamps) + 1, "type": "stop", "timestamp": time.time()})
+            Timer().saveTimestamps(timestamps)
+            return True
+        else:
+            return False
