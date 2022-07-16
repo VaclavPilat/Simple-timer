@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os
+import os, shutil
 
 
 class Timer(object):
@@ -8,6 +8,10 @@ class Timer(object):
 
 
     folderName = "timestamps"
+    fileName = "timestamps.json"
+    
+
+    #########################################################################################
 
 
     def __new__(cls):
@@ -19,6 +23,9 @@ class Timer(object):
         if not hasattr(cls, 'instance'):
             cls.instance = super(Timer, cls).__new__(cls)
         return cls.instance
+    
+
+    #########################################################################################
     
 
     def getFolderPath(cls) -> str:
@@ -42,4 +49,33 @@ class Timer(object):
     def createFolder(cls):
         """Attempts to create a folder for timestamps
         """
-        os.mkdir(cls.getFolderPath())
+        if not cls.folderExists():
+            os.mkdir(cls.getFolderPath())
+    
+
+    def deleteFolder(cls):
+        """Attempts to delete timestamp folder with files inside
+        """
+        if cls.folderExists():
+            shutil.rmtree(cls.getFolderPath())
+    
+
+    #########################################################################################
+    
+
+    def getFilePath(cls) -> str:
+        """Returns path to timestamps file
+
+        Returns:
+            str: Absolute file path
+        """
+        return os.path.join(cls.getFolderPath(), cls.fileName)
+    
+
+    def fileExists(cls) -> bool:
+        """Checks if there is a file for timestamps
+
+        Returns:
+            bool: Does the file exist?
+        """
+        return os.path.isfile(cls.getFilePath())
