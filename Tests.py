@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from core.Timer import *
-import unittest
+import unittest, random
 
 
 class Tests(unittest.TestCase):
@@ -24,11 +24,17 @@ class Tests(unittest.TestCase):
         self.assertEqual(Timer(), Timer())
     
 
-    def test_createAndDeleteFile(self):
-        """Attempts to create and delete a timestamp file
+    def test_createDelete(self):
+        """Attempts to create and delete a timestamp file and folder
         """
-        Timer().createFile()
-        Timer().deleteFile()
+        cases = [
+            lambda: self.assertEqual(not Timer().folderExists(), Timer().createFolder()),
+            lambda: self.assertEqual(Timer().folderExists(), Timer().deleteFolder()),
+            lambda: self.assertEqual(not Timer().fileExists(), Timer().createFile()),
+            lambda: self.assertEqual(Timer().fileExists(), Timer().deleteFile())
+        ]
+        for i in range(100):
+            random.choice(cases)()
 
 
 if __name__ == '__main__':
