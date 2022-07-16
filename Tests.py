@@ -22,9 +22,18 @@ class Tests(unittest.TestCase):
         """Tests if the Timer class is a singleton
         """
         self.assertEqual(Timer(), Timer())
+    
+
+    def test_createAndDeleteFile(self):
+        """Attempts to create and delete a timestamp file
+        """
+        Timer().createFile()
+        Timer().deleteFile()
 
 
 if __name__ == '__main__':
     Timer().folderName = "testfolder"
+    print("Folder: " + Timer().getFolderPath())
     Timer().fileName = "testfile.json"
+    print("File: " + Timer().getFilePath())
     unittest.main()
