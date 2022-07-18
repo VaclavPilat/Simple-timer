@@ -17,6 +17,9 @@ def datetimeFormat() -> str:
     return dateFormat + " " + timeFormat
 
 
+#########################################################################################
+
+
 def timeToReadableString(time: float) -> str:
     """Converts timestamp to readable datetime string
 
@@ -27,6 +30,9 @@ def timeToReadableString(time: float) -> str:
         str: Timestamp converted to readable datetime
     """
     return datetime.datetime.fromtimestamp(time).strftime(datetimeFormat())
+
+
+#########################################################################################
 
 
 def prints(text: str):
@@ -47,6 +53,10 @@ def printTable(data: list):
     if len(data) == 0:
         prints("No data found.")
         return
+    # Replacing certain data with a more readable version
+    for row in data:
+        if "timestamp" in row:
+            row["timestamp"] = timeToReadableString(row["timestamp"])
     # Getting headers
     headers = list(data[0].keys())
     # Getting max data lengths
@@ -73,6 +83,7 @@ def printTable(data: list):
             output += str(value).ljust(lengths[i] + 3)
             i+=1
         prints(output)
+
 
 #########################################################################################
 
