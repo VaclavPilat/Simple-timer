@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from core.Timer import *
-import sys, datetime
+import sys, datetime, math
 
 
 indent = "    "
@@ -30,6 +30,21 @@ def timeToReadableString(time: float) -> str:
         str: Timestamp converted to readable datetime
     """
     return datetime.datetime.fromtimestamp(time).strftime(datetimeFormat())
+
+
+def deltaToReadableTime(delta: float) -> str:
+    """Converts delta time to readable format
+
+    Args:
+        delta (float): Time delta
+
+    Returns:
+        str: Time delta converted to readable version
+    """
+    hours = delta // 3600
+    minutes = (delta % 3600) // 60
+    seconds = math.floor(delta % 60)
+    return str(int(hours)) + ":" + str(int(minutes)) + ":" + str(int(seconds))
 
 
 #########################################################################################
@@ -63,7 +78,9 @@ def printTable(data: list, result: dict = None):
         if "stop" in row:
             row["stop"] = timeToReadableString(row["stop"])
         if "hours" in row:
-            row["hours"] = round(row["hours"], 1)
+            row["hours"] = round(row["hours"] * 10) / 10
+        if "time" in row:
+            row["time"] = deltaToReadableTime(row["time"])
     # Getting headers
     headers = list(data[0].keys())
     # Getting max data lengths
@@ -143,7 +160,7 @@ def show():
 def terms():
     """Calculates time between timestamps and shows the result
     """
-    data, total = Timer().calculateTerms(Timer().loadTimestamps())
+    data = Timer().calculateTerms(Timer().loadTimestamps())
     printTable(data)
     
 
