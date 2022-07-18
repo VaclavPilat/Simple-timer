@@ -1,9 +1,32 @@
 #!/usr/bin/env python3
 from core.Timer import *
-import sys
+import sys, datetime
 
 
 indent = "    "
+dateFormat = "%d.%m.%Y"
+timeFormat = "%H:%M:%S"
+
+
+def datetimeFormat() -> str:
+    """Returns a combination of date and time formats
+
+    Returns:
+        str: Datetime format
+    """
+    return dateFormat + " " + timeFormat
+
+
+def timeToReadableString(time: float) -> str:
+    """Converts timestamp to readable datetime string
+
+    Args:
+        time (float): Timestamp
+
+    Returns:
+        str: Timestamp converted to readable datetime
+    """
+    return datetime.datetime.fromtimestamp(time).strftime(datetimeFormat())
 
 
 def prints(text: str):
@@ -13,6 +36,9 @@ def prints(text: str):
         text (str): Text to print
     """
     print(indent + text)
+    
+
+#########################################################################################
 
 
 def help():
@@ -50,6 +76,9 @@ def stop():
         prints("New STOP timestamp added.")
     else:
         prints("New STOP timestamp could not be added. Make sure that timestamp types alternate.")
+    
+
+#########################################################################################
 
 
 # List of all commands (with description and a pointer to a function)
@@ -97,6 +126,9 @@ def main(args: list):
                 execute(input('Enter command: '))
     except (SystemExit, KeyboardInterrupt):
         prints("Exitting...")
+    
+
+#########################################################################################
 
 
 if __name__ == '__main__':
