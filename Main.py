@@ -60,15 +60,17 @@ def printTable(data: list):
     output = ""
     i = 0
     for header in headers:
-        output += header.upper().ljust(lengths[i] + 2)
+        output += header.upper().ljust(lengths[i] + 3)
         i+=1
     prints(output)
+    # Printing divider
+    prints((sum(lengths) + (len(lengths) -1) * 3) * "-")
     # Showing data
     for row in data:
         output = ""
         i = 0
         for value in list(row.values()):
-            output += str(value).ljust(lengths[i] + 2)
+            output += str(value).ljust(lengths[i] + 3)
             i+=1
         prints(output)
 
