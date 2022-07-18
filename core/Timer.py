@@ -186,3 +186,32 @@ class Timer(object):
             return True
         else:
             return False
+    
+
+    #########################################################################################
+
+
+    def calculateTerms(cls, timestamps: list) -> tuple:
+        """Calculates time spent between timestamps
+        List of timestamps should start with a START timestamp.
+
+        Args:
+            timestamps (list): List of timestamps
+
+        Returns:
+            tuple: Total time spent, data for output
+        """
+        data = []
+        total = 0
+        for i in range(0, len(timestamps), 2):
+            start = timestamps[i]["timestamp"]
+            # Checking if timestamp list ends with a STOP timestamp, otherwise making a new one
+            if (i + 1) < len(timestamps):
+                stop = timestamps[i+1]["timestamp"]
+            else:
+                stop = time.time()
+            # Calculating time
+            delta = stop - start
+            total += delta
+            data.append({"id": int(i/2 + 1), "start": start, "stop": stop, "delta": delta})
+        return total, data

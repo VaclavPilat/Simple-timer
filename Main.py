@@ -57,6 +57,10 @@ def printTable(data: list):
     for row in data:
         if "timestamp" in row:
             row["timestamp"] = timeToReadableString(row["timestamp"])
+        if "start" in row:
+            row["start"] = timeToReadableString(row["start"])
+        if "stop" in row:
+            row["stop"] = timeToReadableString(row["stop"])
     # Getting headers
     headers = list(data[0].keys())
     # Getting max data lengths
@@ -129,6 +133,13 @@ def show():
     """Prints out list of timestamps
     """
     printTable(Timer().loadTimestamps())
+
+
+def terms():
+    """Calculates time between timestamps and shows the result
+    """
+    total, data = Timer().calculateTerms(Timer().loadTimestamps())
+    printTable(data)
     
 
 #########################################################################################
@@ -141,7 +152,7 @@ commandList = {
     ("show", "list", "timestamps"): "Shows list of timestamps",
     ("start", "begin"): "Adds new START timestamp",
     ("stop", "end"): "Adds new STOP timestamp",
-    #("terms", "term"): "Calculates time spent between timestamps",
+    ("terms", "term"): "Calculates time spent between timestamps",
     #("days", "day", "daily"): "Calculates time spent day by day",
     #("weeks", "week", "weekly"): "Calculates time spent for each week",
     #("months", "month", "monthly"): "Calculates time spent for each month",
