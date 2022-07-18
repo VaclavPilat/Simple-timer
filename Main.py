@@ -137,9 +137,14 @@ def show():
 # List of all commands (with description and a pointer to a function)
 commandList = {
     ("help", "cmd", "command", "commands"): "Prints list of usable commands",
+    #("status", "state", "info", "information"): "Prints out information about the timestamps",
     ("show", "list", "timestamps"): "Shows list of timestamps",
     ("start", "begin"): "Adds new START timestamp",
     ("stop", "end"): "Adds new STOP timestamp",
+    #("terms", "term"): "Calculates time spent between timestamps",
+    #("days", "day", "daily"): "Calculates time spent day by day",
+    #("weeks", "week", "weekly"): "Calculates time spent for each week",
+    #("months", "month", "monthly"): "Calculates time spent for each month",
     ("exit", "quit"): "Exits the application"
 }
 
