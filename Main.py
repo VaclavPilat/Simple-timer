@@ -36,7 +36,41 @@ def prints(text: str):
         text (str): Text to print
     """
     print(indent + text)
-    
+
+
+def printTable(data: list):
+    """Prettyprints data in a table
+
+    Args:
+        data (list): List of objects
+    """
+    if len(data) == 0:
+        prints("No data found.")
+        return
+    # Getting headers
+    headers = list(data[0].keys())
+    # Getting max data lengths
+    lengths = [len(headers[i]) for i in range(len(headers))]
+    for row in data:
+        values = list(row.values())
+        for i in range(len(row)):
+            if len(str(values[i])) > lengths[i]:
+                lengths[i] = len(str(values[i]))
+    # Showing headers
+    output = ""
+    i = 0
+    for header in headers:
+        output += header.upper().ljust(lengths[i] + 2)
+        i+=1
+    prints(output)
+    # Showing data
+    for row in data:
+        output = ""
+        i = 0
+        for value in list(row.values()):
+            output += str(value).ljust(lengths[i] + 2)
+            i+=1
+        prints(output)
 
 #########################################################################################
 
@@ -76,6 +110,12 @@ def stop():
         prints("New STOP timestamp added.")
     else:
         prints("New STOP timestamp could not be added. Make sure that timestamp types alternate.")
+
+
+def show():
+    """Prints out list of timestamps
+    """
+    printTable(Timer().loadTimestamps())
     
 
 #########################################################################################
@@ -84,6 +124,7 @@ def stop():
 # List of all commands (with description and a pointer to a function)
 commandList = {
     ("help", "cmd", "command", "commands"): "Prints list of usable commands",
+    ("show", "list", "timestamps"): "Shows list of timestamps",
     ("start", "begin"): "Adds new START timestamp",
     ("stop", "end"): "Adds new STOP timestamp",
     ("exit", "quit"): "Exits the application"
