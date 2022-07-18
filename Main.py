@@ -44,11 +44,12 @@ def prints(text: str):
     print(indent + text)
 
 
-def printTable(data: list):
+def printTable(data: list, result: dict = None):
     """Prettyprints data in a table
 
     Args:
         data (list): List of objects
+        result (dict): Result row
     """
     if len(data) == 0:
         prints("No data found.")
@@ -61,6 +62,8 @@ def printTable(data: list):
             row["start"] = timeToReadableString(row["start"])
         if "stop" in row:
             row["stop"] = timeToReadableString(row["stop"])
+        if "hours" in row:
+            row["hours"] = round(row["hours"], 1)
     # Getting headers
     headers = list(data[0].keys())
     # Getting max data lengths
@@ -81,6 +84,8 @@ def printTable(data: list):
     prints((sum(lengths) + (len(lengths) -1) * 3) * "-")
     # Showing data
     for row in data:
+        if type(row["id"]) is not int:
+            prints((sum(lengths) + (len(lengths) -1) * 3) * "-")
         output = ""
         i = 0
         for value in list(row.values()):
@@ -138,7 +143,7 @@ def show():
 def terms():
     """Calculates time between timestamps and shows the result
     """
-    total, data = Timer().calculateTerms(Timer().loadTimestamps())
+    data, total = Timer().calculateTerms(Timer().loadTimestamps())
     printTable(data)
     
 
