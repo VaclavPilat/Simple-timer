@@ -247,8 +247,8 @@ class Timer(object):
             # Calculating time
             delta = stop - start
             total += delta
-            data.append({"id": int(i/2 + 1), "start": start, "stop": stop, "time": delta, "hours": delta / 3600})
-        return data, {"id": "TOTAL", "start": "", "stop": "", "time": total, "hours": total / 3600}
+            data.append({"id": int(i/2 + 1), "start": start, "stop": stop, "time": delta})
+        return data, {"id": "TOTAL", "start": "", "stop": "", "time": total}
 
 
     def calculateDays(cls, timestamps: list) -> tuple:
@@ -275,5 +275,5 @@ class Timer(object):
                 timestampsBetweenDates = cls.getTimestampsBetweenDates(timestamps, currentDate)
                 termsData, termsResult = cls.calculateTerms(timestampsBetweenDates)
                 total += termsResult["time"]
-                data.append({"id": i+1, "date": currentDate, "time": termsResult["time"], "hours": termsResult["hours"]})
-        return data, {"id": "TOTAL", "date": "", "time": total, "hours": total / 3600}
+                data.append({"id": i+1, "date": currentDate, "time": termsResult["time"]})
+        return data, {"id": "TOTAL", "date": "", "time": total}
