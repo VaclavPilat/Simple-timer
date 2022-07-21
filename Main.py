@@ -20,11 +20,11 @@ def datetimeFormat() -> str:
 #########################################################################################
 
 
-def timeToReadableString(time: float) -> str:
+def timeToReadableString(time: int) -> str:
     """Converts timestamp to readable datetime string
 
     Args:
-        time (float): Timestamp
+        time (int): Timestamp
 
     Returns:
         str: Timestamp converted to readable datetime
@@ -36,7 +36,7 @@ def dateToReadableString(date: datetime.date) -> str:
     """Converts date to readable date string
 
     Args:
-        date (float): Date
+        date (int): Date
 
     Returns:
         str: Date converted to readable date
@@ -44,11 +44,11 @@ def dateToReadableString(date: datetime.date) -> str:
     return datetime.datetime.combine(date, datetime.time.min).strftime(dateFormat)
 
 
-def deltaToReadableTime(delta: float) -> str:
+def deltaToReadableTime(delta: int) -> str:
     """Converts delta time to readable format
 
     Args:
-        delta (float): Time delta
+        delta (int): Time delta
 
     Returns:
         str: Time delta converted to readable version
@@ -87,8 +87,6 @@ def processTableData(data: list) -> list:
             row["start"] = timeToReadableString(row["start"])
         if "stop" in row and row["stop"] != "":
             row["stop"] = timeToReadableString(row["stop"])
-        if "hours" in row and row["hours"] != "":
-            row["hours"] = round(row["hours"] * 10) / 10
         if "time" in row and row["time"] != "":
             row["time"] = deltaToReadableTime(row["time"])
         if "date" in row and row["date"] != "":
@@ -190,6 +188,7 @@ def terms():
     """Calculates time between timestamps and shows the result
     """
     data, result = Timer().calculateTerms(Timer().loadTimestamps())
+    #print(result)
     printTable(data, result)
 
 
@@ -197,6 +196,7 @@ def days():
     """Calculates time for each day
     """
     data, result = Timer().calculateDays(Timer().loadTimestamps())
+    #print(result)
     printTable(data, result)
     
 

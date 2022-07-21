@@ -166,7 +166,7 @@ class Timer(object):
         """
         timestamps = cls.loadTimestamps()
         if len(timestamps) % 2 == 0:
-            timestamps.append({"id": len(timestamps) + 1, "type": "start", "timestamp": time.time()})
+            timestamps.append({"id": len(timestamps) + 1, "type": "start", "timestamp": int(time.time())})
             Timer().saveTimestamps(timestamps)
             return True
         else:
@@ -181,7 +181,7 @@ class Timer(object):
         """
         timestamps = cls.loadTimestamps()
         if len(timestamps) % 2 == 1:
-            timestamps.append({"id": len(timestamps) + 1, "type": "stop", "timestamp": time.time()})
+            timestamps.append({"id": len(timestamps) + 1, "type": "stop", "timestamp": int(time.time())})
             Timer().saveTimestamps(timestamps)
             return True
         else:
@@ -205,8 +205,8 @@ class Timer(object):
         timestampsBetweenDates = []
         if lastDate is None:
             lastDate = firstDate
-        firstDateTimestamp = datetime.datetime.timestamp(datetime.datetime.combine(firstDate, datetime.time.min))
-        lastDateTimestamp = datetime.datetime.timestamp(datetime.datetime.combine(lastDate, datetime.time.max))
+        firstDateTimestamp = int(datetime.datetime.timestamp(datetime.datetime.combine(firstDate, datetime.time.min)))
+        lastDateTimestamp = int(datetime.datetime.timestamp(datetime.datetime.combine(lastDate, datetime.time.min) + datetime.timedelta(days=1)))
         # Getting timestamps between dates
         for timestamp in timestamps:
             if timestamp["timestamp"] >= firstDateTimestamp and timestamp["timestamp"] <= lastDateTimestamp:
@@ -216,7 +216,7 @@ class Timer(object):
             timestampsBetweenDates.insert(0, {"id": "", "type": "start", "timestamp": firstDateTimestamp})
         if timestampsBetweenDates[-1]["type"] == "start":
             if timestampsBetweenDates[-1] == timestamps[-1]:
-                timestampsBetweenDates.append({"id": "", "type": "stop", "timestamp": datetime.datetime.timestamp(datetime.datetime.now())})
+                timestampsBetweenDates.append({"id": "", "type": "stop", "timestamp": int(time.time())})
             else:
                 timestampsBetweenDates.append({"id": "", "type": "stop", "timestamp": lastDateTimestamp})
         return timestampsBetweenDates
@@ -243,7 +243,7 @@ class Timer(object):
             if (i + 1) < len(timestamps):
                 stop = timestamps[i+1]["timestamp"]
             else:
-                stop = time.time()
+                stop = int(time.time())
             # Calculating time
             delta = stop - start
             total += delta
