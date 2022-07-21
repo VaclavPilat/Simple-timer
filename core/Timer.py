@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, shutil, json, time
+import os, shutil, json, time, datetime
 
 
 class Timer(object):
@@ -219,4 +219,29 @@ class Timer(object):
             delta = stop - start
             total += delta
             data.append({"id": int(i/2 + 1), "start": start, "stop": stop, "time": delta, "hours": delta / 3600})
-        return data, {"id": "TOTAL", "start": first, "stop": last, "time": total, "hours": total / 3600}
+        return data, {"id": "TOTAL", "start": "", "stop": "", "time": total, "hours": total / 3600}
+
+
+    def calculateDays(cls, timestamps: list) -> tuple:
+        """Calculates time spent for each day
+        List of timestamps should start with a START timestamp.
+
+        Args:
+            timestamps (list): List of timestamps
+
+        Returns:
+            tuple: Data for output, total time spent
+        """
+        data = []
+        total = 0
+        if len(timestamps) > 0:
+            # Getting first and last dates
+            first = timestamps[0]["timestamp"]
+            last = timestamps[-1]["timestamp"]
+            firstDate = datetime.datetime.fromtimestamp(first).date()
+            lastDate = datetime.datetime.fromtimestamp(last).date()
+            # Looping through each day
+            for i in range((lastDate - firstDate).days + 1):
+                currentDate = firstDate + datetime.timedelta(days=i)
+                data.append({"id": i+1, "date": currentDate, "time": 0, "hours": 0})
+        return data, {"id": "TOTAL", "date": "", "time": total, "hours": total / 3600}

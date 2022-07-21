@@ -32,6 +32,18 @@ def timeToReadableString(time: float) -> str:
     return datetime.datetime.fromtimestamp(time).strftime(datetimeFormat())
 
 
+def dateToReadableString(date: datetime.date) -> str:
+    """Converts date to readable date string
+
+    Args:
+        date (float): Date
+
+    Returns:
+        str: Date converted to readable date
+    """
+    return datetime.datetime.combine(date, datetime.time.min).strftime(dateFormat)
+
+
 def deltaToReadableTime(delta: float) -> str:
     """Converts delta time to readable format
 
@@ -69,28 +81,32 @@ def processTableData(data: list) -> list:
         list: Processed data
     """
     for row in data:
-        if "timestamp" in row:
+        if "timestamp" in row and row["timestamp"] != "":
             row["timestamp"] = timeToReadableString(row["timestamp"])
-        if "start" in row:
+        if "start" in row and row["start"] != "":
             row["start"] = timeToReadableString(row["start"])
-        if "stop" in row:
+        if "stop" in row and row["stop"] != "":
             row["stop"] = timeToReadableString(row["stop"])
-        if "hours" in row:
+        if "hours" in row and row["hours"] != "":
             row["hours"] = round(row["hours"] * 10) / 10
-        if "time" in row:
+        if "time" in row and row["time"] != "":
             row["time"] = deltaToReadableTime(row["time"])
+        if "date" in row and row["date"] != "":
+            row["date"] = dateToReadableString(row["date"])
     return data
 
 
-def printTable(data: list):
+def printTable(data: list, result: dict):
     """Prettyprints data in a table
 
     Args:
         data (list): List of objects
+        result (dict): Object with result data
     """
     if len(data) == 0:
         prints("No data found.")
         return
+    data += [result, ]
     # Replacing certain data with a more readable version
     processTableData(data)
     # Getting headers
@@ -113,7 +129,7 @@ def printTable(data: list):
     prints((sum(lengths) + (len(lengths) -1) * 3) * "-")
     # Showing data
     for row in data:
-        if type(row["id"]) is not int:
+        if "id" in row and type(row["id"]) is not int:
             prints((sum(lengths) + (len(lengths) -1) * 3) * "-")
         output = ""
         i = 0
@@ -173,7 +189,14 @@ def terms():
     """Calculates time between timestamps and shows the result
     """
     data, result = Timer().calculateTerms(Timer().loadTimestamps())
-    printTable(data + [result, ])
+    printTable(data, result)
+
+
+def days():
+    """Calculates time for each day
+    """
+    data, result = Timer().calculateDays(Timer().loadTimestamps())
+    printTable(data, result)
     
 
 #########################################################################################
@@ -187,7 +210,7 @@ commandList = {
     ("start", "begin"): "Adds new START timestamp",
     ("stop", "end"): "Adds new STOP timestamp",
     ("terms", "term"): "Calculates time spent between timestamps",
-    #("days", "day", "daily"): "Calculates time spent day by day",
+    ("days", "day", "daily"): "Calculates time spent day by day",
     #("weeks", "week", "weekly"): "Calculates time spent for each week",
     #("months", "month", "monthly"): "Calculates time spent for each month",
     ("exit", "quit"): "Exits the application"
