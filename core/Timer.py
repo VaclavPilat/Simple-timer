@@ -272,8 +272,8 @@ class Timer(object):
             # Looping through each day
             for i in range((lastDate - firstDate).days + 1):
                 currentDate = firstDate + datetime.timedelta(days=i)
-                for x in cls.getTimestampsBetweenDates(timestamps, currentDate):
-                    print(x)
-                print("----")
-                data.append({"id": i+1, "date": currentDate, "time": 0, "hours": 0})
+                timestampsBetweenDates = cls.getTimestampsBetweenDates(timestamps, currentDate)
+                termsData, termsResult = cls.calculateTerms(timestampsBetweenDates)
+                total += termsResult["time"]
+                data.append({"id": i+1, "date": currentDate, "time": termsResult["time"], "hours": termsResult["hours"]})
         return data, {"id": "TOTAL", "date": "", "time": total, "hours": total / 3600}
