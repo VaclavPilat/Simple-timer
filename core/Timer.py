@@ -208,13 +208,17 @@ class Timer(object):
         firstDateTimestamp = int(datetime.datetime.timestamp(datetime.datetime.combine(firstDate, datetime.time.min)))
         lastDateTimestamp = int(datetime.datetime.timestamp(datetime.datetime.combine(lastDate, datetime.time.min) + datetime.timedelta(days=1)))
         # Getting timestamps between dates
+        beforeTimestamp = None
         for timestamp in timestamps:
+            if timestamp["timestamp"] < firstDateTimestamp and (beforeTimestamp is None or timestamp["timestamp"] > beforeTimestamp["timestamp"]):
+                beforeTimestamp = timestamp
             if timestamp["timestamp"] >= firstDateTimestamp and timestamp["timestamp"] <= lastDateTimestamp:
                 timestampsBetweenDates.append(timestamp)
         # Adding additional timestamps
-        if len(timestampsBetweenDates) == 0 or timestampsBetweenDates[0]["type"] == "stop":
-            timestampsBetweenDates.insert(0, {"id": "", "type": "start", "timestamp": firstDateTimestamp})
-        if timestampsBetweenDates[-1]["type"] == "start":
+        if beforeTimestamp is not None and beforeTimestamp["type"] == "start":
+            if len(timestampsBetweenDates) == 0 or timestampsBetweenDates[0]["type"] == "stop":
+                timestampsBetweenDates.insert(0, {"id": "", "type": "start", "timestamp": firstDateTimestamp})
+        if len(timestampsBetweenDates) > 0 and timestampsBetweenDates[-1]["type"] == "start":
             if timestampsBetweenDates[-1] == timestamps[-1]:
                 timestampsBetweenDates.append({"id": "", "type": "stop", "timestamp": int(time.time())})
             else:
@@ -274,6 +278,7 @@ class Timer(object):
                 currentDate = firstDate + datetime.timedelta(days=i)
                 timestampsBetweenDates = cls.getTimestampsBetweenDates(timestamps, currentDate)
                 termsData, termsResult = cls.calculateTerms(timestampsBetweenDates)
-                total += termsResult["time"]
-                data.append({"id": i+1, "date": currentDate, "time": termsResult["time"]})
+                if termsResult["time"] > 0:
+                    total += termsResult["time"]
+                    data.append({"id": len(data) +1, "date": currentDate, "time": termsResult["time"]})
         return data, {"id": "TOTAL", "date": "", "time": total}
