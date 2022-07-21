@@ -96,7 +96,7 @@ def processTableData(data: list) -> list:
     return data
 
 
-def printTable(data: list, result: dict):
+def printTable(data: list, result: dict = None):
     """Prettyprints data in a table
 
     Args:
@@ -106,7 +106,8 @@ def printTable(data: list, result: dict):
     if len(data) == 0:
         prints("No data found.")
         return
-    data += [result, ]
+    if result is not None:
+        data += [result, ]
     # Replacing certain data with a more readable version
     processTableData(data)
     # Getting headers

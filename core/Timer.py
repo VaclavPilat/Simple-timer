@@ -191,6 +191,40 @@ class Timer(object):
     #########################################################################################
 
 
+    def getTimestampsBetweenDates(cls, timestamps: list, firstDate: datetime.date, lastDate: datetime.date = None) -> list:
+        """Attempts to get list of timestamps between two dates
+
+        Args:
+            timestamps (list): List of timestamps
+            firstDate (datetime.date): First date
+            lastDate (datetime.date, optional): Last date. Defaults to None.
+
+        Returns:
+            list: Found timestamps between dates
+        """
+        timestampsBetweenDates = []
+        if lastDate is None:
+            lastDate = firstDate
+        firstDateTimestamp = datetime.datetime.timestamp(datetime.datetime.combine(firstDate, datetime.time.min))
+        lastDateTimestamp = datetime.datetime.timestamp(datetime.datetime.combine(lastDate, datetime.time.max))
+        # Getting timestamps between dates
+        for timestamp in timestamps:
+            if timestamp["timestamp"] >= firstDateTimestamp and timestamp["timestamp"] <= lastDateTimestamp:
+                timestampsBetweenDates.append(timestamp)
+        # Adding additional timestamps
+        if len(timestampsBetweenDates) == 0 or timestampsBetweenDates[0]["type"] == "stop":
+            timestampsBetweenDates.insert(0, {"id": "", "type": "start", "timestamp": firstDateTimestamp})
+        if timestampsBetweenDates[-1]["type"] == "start":
+            if timestampsBetweenDates[-1] == timestamps[-1]:
+                timestampsBetweenDates.append({"id": "", "type": "stop", "timestamp": datetime.datetime.timestamp(datetime.datetime.now())})
+            else:
+                timestampsBetweenDates.append({"id": "", "type": "stop", "timestamp": lastDateTimestamp})
+        return timestampsBetweenDates
+    
+
+    #########################################################################################
+
+
     def calculateTerms(cls, timestamps: list) -> tuple:
         """Calculates time spent between timestamps
         List of timestamps should start with a START timestamp.
@@ -203,18 +237,13 @@ class Timer(object):
         """
         data = []
         total = 0
-        first = None
-        last = None
         for i in range(0, len(timestamps), 2):
             start = timestamps[i]["timestamp"]
-            if first is None:
-                first = start
             # Checking if timestamp list ends with a STOP timestamp, otherwise making a new one
             if (i + 1) < len(timestamps):
                 stop = timestamps[i+1]["timestamp"]
             else:
                 stop = time.time()
-            last = stop
             # Calculating time
             delta = stop - start
             total += delta
@@ -243,5 +272,8 @@ class Timer(object):
             # Looping through each day
             for i in range((lastDate - firstDate).days + 1):
                 currentDate = firstDate + datetime.timedelta(days=i)
+                for x in cls.getTimestampsBetweenDates(timestamps, currentDate):
+                    print(x)
+                print("----")
                 data.append({"id": i+1, "date": currentDate, "time": 0, "hours": 0})
         return data, {"id": "TOTAL", "date": "", "time": total, "hours": total / 3600}
