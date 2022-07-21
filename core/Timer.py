@@ -282,3 +282,20 @@ class Timer(object):
                     total += termsResult["time"]
                     data.append({"id": len(data) +1, "date": currentDate, "time": termsResult["time"]})
         return data, {"id": "TOTAL", "date": "", "time": total}
+
+
+    def calculateToday(cls, timestamps: list) -> tuple:
+        """Calculates time spent for each day
+        List of timestamps should start with a START timestamp.
+
+        Args:
+            timestamps (list): List of timestamps
+
+        Returns:
+            tuple: Data for output, total time spent
+        """
+        currentDate = datetime.datetime.fromtimestamp(time.time()).date()
+        timestampsBetweenDates = cls.getTimestampsBetweenDates(timestamps, currentDate)
+        termsData, termsResult = cls.calculateTerms(timestampsBetweenDates)
+        data = [{"id": 1, "date": currentDate, "time": termsResult["time"]}, ]
+        return data, {"id": "TOTAL", "date": currentDate, "time": termsResult["time"]}

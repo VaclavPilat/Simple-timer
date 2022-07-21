@@ -211,6 +211,13 @@ def days():
     data, result = Timer().calculateDays(Timer().loadTimestamps())
     #print(result)
     printTable(data, result)
+
+
+def today():
+    """Calculates time for each day
+    """
+    data, result = Timer().calculateToday(Timer().loadTimestamps())
+    printTable(data)
     
 
 #########################################################################################
@@ -227,6 +234,7 @@ commandList = {
     ("days", "day", "daily"): "Calculates time spent day by day",
     #("weeks", "week", "weekly"): "Calculates time spent for each week",
     #("months", "month", "monthly"): "Calculates time spent for each month",
+    ("today", ): "Calculates time spent on the current day",
     ("exit", "quit"): "Exits the application"
 }
 
