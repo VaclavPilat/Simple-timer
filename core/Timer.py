@@ -219,5 +219,4 @@ class Timer(object):
             delta = stop - start
             total += delta
             data.append({"id": int(i/2 + 1), "start": start, "stop": stop, "time": delta, "hours": delta / 3600})
-        data.append({"id": "TOTAL", "start": first, "stop": last, "time": total, "hours": total / 3600})
-        return data
+        return data, {"id": "TOTAL", "start": first, "stop": last, "time": total, "hours": total / 3600}

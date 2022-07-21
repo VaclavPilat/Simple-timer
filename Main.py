@@ -59,17 +59,15 @@ def prints(text: str):
     print(indent + text)
 
 
-def printTable(data: list, result: dict = None):
-    """Prettyprints data in a table
+def processTableData(data: list) -> list:
+    """Processes data into a more readable version
 
     Args:
-        data (list): List of objects
-        result (dict): Result row
+        data (list): List of objects to be processed
+
+    Returns:
+        list: Processed data
     """
-    if len(data) == 0:
-        prints("No data found.")
-        return
-    # Replacing certain data with a more readable version
     for row in data:
         if "timestamp" in row:
             row["timestamp"] = timeToReadableString(row["timestamp"])
@@ -81,6 +79,20 @@ def printTable(data: list, result: dict = None):
             row["hours"] = round(row["hours"] * 10) / 10
         if "time" in row:
             row["time"] = deltaToReadableTime(row["time"])
+    return data
+
+
+def printTable(data: list):
+    """Prettyprints data in a table
+
+    Args:
+        data (list): List of objects
+    """
+    if len(data) == 0:
+        prints("No data found.")
+        return
+    # Replacing certain data with a more readable version
+    processTableData(data)
     # Getting headers
     headers = list(data[0].keys())
     # Getting max data lengths
@@ -160,8 +172,8 @@ def show():
 def terms():
     """Calculates time between timestamps and shows the result
     """
-    data = Timer().calculateTerms(Timer().loadTimestamps())
-    printTable(data)
+    data, result = Timer().calculateTerms(Timer().loadTimestamps())
+    printTable(data + [result, ])
     
 
 #########################################################################################
