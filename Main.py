@@ -88,6 +88,13 @@ def processTableData(data: list) -> list:
         if "stop" in row and row["stop"] != "":
             row["stop"] = timeToReadableString(row["stop"])
         if "time" in row and row["time"] != "":
+            row["hours"] = round(row["time"] / 3600, 2)
+            if row["hours"] % 1 >= 0.75:
+                row["rounded"] = row["hours"] - row["hours"] % 1 + 1
+            elif row["hours"] % 1 >= 0.25:
+                row["rounded"] = row["hours"] - row["hours"] % 1 + 0.5
+            else:
+                row["rounded"] = row["hours"] - row["hours"] % 1
             row["time"] = deltaToReadableTime(row["time"])
         if "date" in row and row["date"] != "":
             row["date"] = dateToReadableString(row["date"])
