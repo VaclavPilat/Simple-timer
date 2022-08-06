@@ -56,7 +56,7 @@ def deltaToReadableTime(delta: int) -> str:
     hours = delta // 3600
     minutes = (delta % 3600) // 60
     seconds = math.floor(delta % 60)
-    return str(int(hours)) + ":" + str(int(minutes)) + ":" + str(int(seconds))
+    return str(int(hours)) + ":" + str(int(minutes)).rjust(2, "0") + ":" + str(int(seconds)).rjust(2, "0")
 
 
 #########################################################################################
