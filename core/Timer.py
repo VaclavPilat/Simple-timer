@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, shutil, json, time, datetime
+import os, shutil, json, time, datetime, calendar
 
 
 class Timer(object):
@@ -302,3 +302,42 @@ class Timer(object):
         termsData, termsResult = cls.calculateTerms(timestampsBetweenDates)
         data = [{"id": 1, "date": currentDate, "time": termsResult["time"]}, ]
         return data, {"id": "TOTAL", "date": currentDate, "time": termsResult["time"]}
+
+
+    def calculateMonths(cls, timestamps: list) -> tuple:
+        """Calculates time spent for each month
+        List of timestamps should start with a START timestamp.
+
+        Args:
+            timestamps (list): List of timestamps
+
+        Returns:
+            tuple: Data for output, total time spent
+        """
+        data = []
+        total = 0
+        if len(timestamps) > 0:
+            # Getting first and last dates
+            first = timestamps[0]["timestamp"]
+            if timestamps[-1]["type"] == "start":
+                timestamps.append({"id": "", "type": "stop", "timestamp": int(time.time())})
+            last = timestamps[-1]["timestamp"]
+            firstMonthDate = datetime.datetime.fromtimestamp(first).date().replace(day=1)
+            lastMonthDate = datetime.datetime.fromtimestamp(last).date().replace(day=1)
+            # Looping through each month
+            currentMonthDate = firstMonthDate
+            while True:
+                # Getting next month
+                nextMonth = calendar._nextmonth(currentMonthDate.year, currentMonthDate.month)
+                nextMonthDate = datetime.datetime(nextMonth[0], nextMonth[1], 1).date()
+                # Calculating time in months
+                timestampsBetweenDates = cls.getTimestampsBetweenDates(timestamps, currentMonthDate, nextMonthDate - datetime.timedelta(days=1))
+                termsData, termsResult = cls.calculateTerms(timestampsBetweenDates)
+                if termsResult["time"] > 0:
+                    total += termsResult["time"]
+                    data.append({"id": len(data) +1, "month": currentMonthDate, "time": termsResult["time"]})
+                # Switching to next month
+                if datetime.datetime.timestamp(datetime.datetime.combine(currentMonthDate, datetime.time.min)) >= datetime.datetime.timestamp(datetime.datetime.combine(lastMonthDate, datetime.time.min)):
+                    break
+                currentMonthDate = nextMonthDate
+        return data, {"id": "TOTAL", "month": "", "time": total}

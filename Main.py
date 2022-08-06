@@ -102,6 +102,8 @@ def processTableData(data: list) -> list:
             row["hours"] = format(row["hours"], ".3f")
         if "date" in row and row["date"] != "":
             row["date"] = dateToReadableString(row["date"])
+        if "month" in row and row["month"] != "":
+            row["month"] = row["month"].strftime("%B %Y")
     # Altering result data
     if data[-1]["id"] == "TOTAL" and "rounded" in data[-1]:
         data[-1]["rounded"] = sum(row["rounded"] for row in data[:-1])
@@ -218,7 +220,6 @@ def terms():
     """Calculates time between timestamps and shows the result
     """
     data, result = Timer().calculateTerms(Timer().loadTimestamps())
-    #print(result)
     printTable(data, result)
 
 
@@ -226,7 +227,6 @@ def days():
     """Calculates time for each day
     """
     data, result = Timer().calculateDays(Timer().loadTimestamps())
-    #print(result)
     printTable(data, result)
 
 
@@ -235,6 +235,13 @@ def today():
     """
     data, result = Timer().calculateToday(Timer().loadTimestamps())
     printTable(data)
+
+
+def months():
+    """Calculates time for each month
+    """
+    data, result = Timer().calculateMonths(Timer().loadTimestamps())
+    printTable(data, result)
     
 
 #########################################################################################
@@ -250,7 +257,7 @@ commandList = {
     ("terms", "term"): "Calculates time spent between timestamps",
     ("days", "day", "daily"): "Calculates time spent day by day",
     #("weeks", "week", "weekly"): "Calculates time spent for each week",
-    #("months", "month", "monthly"): "Calculates time spent for each month",
+    ("months", "month", "monthly"): "Calculates time spent for each month",
     ("today", ): "Calculates time spent on the current day",
     ("exit", "quit"): "Exits the application"
 }
