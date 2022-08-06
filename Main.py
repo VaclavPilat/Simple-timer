@@ -99,12 +99,29 @@ def processTableData(data: list) -> list:
             else:
                 row["rounded"] = row["hours"] - row["hours"] % 1
             row["time"] = deltaToReadableTime(row["time"])
+            row["hours"] = format(row["hours"], ".3f")
         if "date" in row and row["date"] != "":
             row["date"] = dateToReadableString(row["date"])
     # Altering result data
     if data[-1]["id"] == "TOTAL" and "rounded" in data[-1]:
         data[-1]["rounded"] = sum(row["rounded"] for row in data[:-1])
     return data
+
+
+def selectCorrectFieldJustification(type: str, value, length: int) -> str:
+    """Creates a new string with the correct justification based on field type
+
+    Args:
+        type (str): Field type (name)
+        value (mixed): Value
+        length (int): Desired length of string
+
+    Returns:
+        str: New, justifed string
+    """
+    if type in ("time", "hours", "rounded"):
+        value = value.rjust(length)
+    return value.ljust(length + 3)
 
 
 def printTable(data: list, result: dict = None):
@@ -145,8 +162,8 @@ def printTable(data: list, result: dict = None):
             prints((sum(lengths) + (len(lengths) -1) * 3) * "-")
         output = ""
         i = 0
-        for value in list(row.values()):
-            output += str(value).ljust(lengths[i] + 3)
+        for key in list(row.keys()):
+            output += selectCorrectFieldJustification(key, str(row[key]), lengths[i])
             i+=1
         prints(output)
 
