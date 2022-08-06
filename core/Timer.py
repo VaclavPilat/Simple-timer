@@ -271,6 +271,8 @@ class Timer(object):
         if len(timestamps) > 0:
             # Getting first and last dates
             first = timestamps[0]["timestamp"]
+            if timestamps[-1]["type"] == "start":
+                timestamps.append({"id": "", "type": "stop", "timestamp": int(time.time())})
             last = timestamps[-1]["timestamp"]
             firstDate = datetime.datetime.fromtimestamp(first).date()
             lastDate = datetime.datetime.fromtimestamp(last).date()
