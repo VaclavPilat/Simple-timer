@@ -219,10 +219,11 @@ class Timer(object):
             if len(timestampsBetweenDates) == 0 or timestampsBetweenDates[0]["type"] == "stop":
                 timestampsBetweenDates.insert(0, {"id": "", "type": "start", "timestamp": firstDateTimestamp})
         if len(timestampsBetweenDates) > 0 and timestampsBetweenDates[-1]["type"] == "start":
-            if timestampsBetweenDates[-1] == timestamps[-1]:
+            if timestampsBetweenDates[-1] == timestamps[-1] or int(time.time()) < lastDateTimestamp:
                 timestampsBetweenDates.append({"id": "", "type": "stop", "timestamp": int(time.time())})
             else:
                 timestampsBetweenDates.append({"id": "", "type": "stop", "timestamp": lastDateTimestamp})
+        #print(timestampsBetweenDates)
         return timestampsBetweenDates
     
 
