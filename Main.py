@@ -363,12 +363,12 @@ def execute(command: str):
     """
     # Searcing list of commands
     for commands in commandList:
-        if command in commands["command"]:
+        if command == commands["command"]:
             getattr(sys.modules[__name__], commands["command"])()
             print()
             return
     # Message in case the command is not found
-    prints("Command not found, use '" + commandList[0]["command"] + "' to list all usable commands.")
+    prints("Command '" + command + "' not found, use '" + commandList[0]["command"] + "' to list all usable commands.")
     print()
 
 
