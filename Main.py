@@ -84,12 +84,11 @@ def processTableData(data: list) -> list:
         return
     # Altering row data
     for row in data:
-        if "timestamp" in row and row["timestamp"] != "":
-            row["timestamp"] = timeToReadableString(row["timestamp"])
-        if "start" in row and row["start"] != "":
-            row["start"] = timeToReadableString(row["start"])
-        if "stop" in row and row["stop"] != "":
-            row["stop"] = timeToReadableString(row["stop"])
+        # Spcific fields
+        if "month" in row and row["month"] != "":
+            row["month"] = row["month"].strftime("%B %Y")
+        if "year" in row and row["year"] != "":
+            row["year"] = row["year"].strftime("%Y")
         if "time" in row and row["time"] != "":
             row["hours"] = round(row["time"] / 3600, 3)
             if row["hours"] % 1 >= 0.75:
@@ -100,14 +99,12 @@ def processTableData(data: list) -> list:
                 row["rounded"] = row["hours"] - row["hours"] % 1
             row["time"] = deltaToReadableTime(row["time"])
             row["hours"] = format(row["hours"], ".3f")
-        if "date" in row and row["date"] != "":
-            row["date"] = dateToReadableString(row["date"])
-        if "monday" in row and row["monday"] != "":
-            row["monday"] = dateToReadableString(row["monday"])
-        if "sunday" in row and row["sunday"] != "":
-            row["sunday"] = dateToReadableString(row["sunday"])
-        if "month" in row and row["month"] != "":
-            row["month"] = row["month"].strftime("%B %Y")
+        # Common fields
+        for key in row.keys():
+            if type(row[key]) == datetime.date:
+                row[key] = dateToReadableString(row[key])
+            elif type(row[key]) == int and key != "id":
+                row[key] = timeToReadableString(row[key])
     # Altering result data
     if "id" in data[-1] and data[-1]["id"] == "TOTAL" and "rounded" in data[-1]:
         data[-1]["rounded"] = sum(row["rounded"] for row in data[:-1])
@@ -248,6 +245,13 @@ def weeks():
     printTable(data, result)
 
 
+def years():
+    """Calculates time for each year
+    """
+    data, result = Timer().calculateYears(Timer().loadTimestamps())
+    printTable(data, result)
+
+
 def erase():
     """Erasing last timestamp
     """
@@ -335,6 +339,10 @@ commandList = [
     {
         "command": "months",
         "description": "Calculates time spent for each month",
+    },
+    {
+        "command": "years",
+        "description": "Calculates time spent for each year",
     },
     {
         "command": "today",

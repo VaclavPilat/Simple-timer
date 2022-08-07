@@ -253,7 +253,7 @@ class Timer(object):
             delta = stop - start
             total += delta
             data.append({"id": int(i/2 + 1), "start": start, "stop": stop, "time": delta})
-        return data, {"id": "TOTAL", "start": "", "stop": "", "time": total}
+        return data, {"id": "SUM", "start": "", "stop": "", "time": total}
 
 
     def calculateDays(cls, timestamps: list) -> tuple:
@@ -284,7 +284,7 @@ class Timer(object):
                 if termsResult["time"] > 0:
                     total += termsResult["time"]
                     data.append({"id": len(data) +1, "date": currentDate, "time": termsResult["time"]})
-        return data, {"id": "TOTAL", "date": "", "time": total}
+        return data, {"id": "SUM", "date": "", "time": total}
 
 
     def calculateToday(cls, timestamps: list) -> tuple:
@@ -301,7 +301,7 @@ class Timer(object):
         timestampsBetweenDates = cls.getTimestampsBetweenDates(timestamps, currentDate)
         termsData, termsResult = cls.calculateTerms(timestampsBetweenDates)
         data = [{"id": 1, "date": currentDate, "time": termsResult["time"]}, ]
-        return data, {"id": "TOTAL", "date": currentDate, "time": termsResult["time"]}
+        return data, {"id": "SUM", "date": currentDate, "time": termsResult["time"]}
 
 
     def calculateMonths(cls, timestamps: list) -> tuple:
@@ -340,7 +340,7 @@ class Timer(object):
                 if datetime.datetime.timestamp(datetime.datetime.combine(currentMonthDate, datetime.time.min)) >= datetime.datetime.timestamp(datetime.datetime.combine(lastMonthDate, datetime.time.min)):
                     break
                 currentMonthDate = nextMonthDate
-        return data, {"id": "TOTAL", "month": "", "time": total}
+        return data, {"id": "SUM", "month": "", "time": total}
 
 
     def calculateWeeks(cls, timestamps: list) -> tuple:
@@ -379,4 +379,41 @@ class Timer(object):
                     data.append({"id": len(data) +1, "monday": currentWeekDate, "sunday": currentWeekEndDate, "time": termsResult["time"]})
                 # Switching to next week
                 currentWeekDate = nextWeekDate
-        return data, {"id": "TOTAL", "monday": "", "sunday": "", "time": total}
+        return data, {"id": "SUM", "monday": "", "sunday": "", "time": total}
+
+
+    def calculateYears(cls, timestamps: list) -> tuple:
+        """Calculates time spent for each year
+        List of timestamps should start with a START timestamp.
+
+        Args:
+            timestamps (list): List of timestamps
+
+        Returns:
+            tuple: Data for output, total time spent
+        """
+        data = []
+        total = 0
+        if len(timestamps) > 0:
+            # Getting first and last dates
+            first = timestamps[0]["timestamp"]
+            if timestamps[-1]["type"] == "start":
+                timestamps.append({"id": "", "type": "stop", "timestamp": int(time.time())})
+            last = timestamps[-1]["timestamp"]
+            firstYearDate = datetime.datetime.fromtimestamp(first).date().replace(month=1, day=1)
+            lastYearDate = datetime.datetime.fromtimestamp(first).date().replace(month=1, day=1)
+            # Looping through each year
+            currentYearDate = firstYearDate
+            for i in range(lastYearDate.year - firstYearDate.year + 1):
+                # Getting next year
+                nextYearDate = currentYearDate.replace(year=currentYearDate.year+1)
+                # Calculating time in years
+                currentYearEndDate = nextYearDate - datetime.timedelta(days=1)
+                timestampsBetweenDates = cls.getTimestampsBetweenDates(timestamps, currentYearDate, currentYearEndDate)
+                termsData, termsResult = cls.calculateTerms(timestampsBetweenDates)
+                if termsResult["time"] > 0:
+                    total += termsResult["time"]
+                    data.append({"id": len(data) +1, "year": currentYearDate, "time": termsResult["time"]})
+                # Switching to next year
+                currentYearDate = nextYearDate
+        return data, {"id": "SUM", "year": "", "time": total}
