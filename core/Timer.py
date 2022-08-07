@@ -401,7 +401,7 @@ class Timer(object):
                 timestamps.append({"id": "", "type": "stop", "timestamp": int(time.time())})
             last = timestamps[-1]["timestamp"]
             firstYearDate = datetime.datetime.fromtimestamp(first).date().replace(month=1, day=1)
-            lastYearDate = datetime.datetime.fromtimestamp(first).date().replace(month=1, day=1)
+            lastYearDate = datetime.datetime.fromtimestamp(last).date().replace(month=1, day=1)
             # Looping through each year
             currentYearDate = firstYearDate
             for i in range(lastYearDate.year - firstYearDate.year + 1):
