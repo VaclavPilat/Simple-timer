@@ -105,7 +105,7 @@ def processTableData(data: list) -> list:
         if "month" in row and row["month"] != "":
             row["month"] = row["month"].strftime("%B %Y")
     # Altering result data
-    if data[-1]["id"] == "TOTAL" and "rounded" in data[-1]:
+    if "id" in data[-1] and data[-1]["id"] == "TOTAL" and "rounded" in data[-1]:
         data[-1]["rounded"] = sum(row["rounded"] for row in data[:-1])
     return data
 
@@ -176,14 +176,7 @@ def printTable(data: list, result: dict = None):
 def help():
     """Prints out all usable commands
     """
-    # Getting length of the longest key
-    maxLength = 0
-    for commands in list(commandList.keys()):
-        if len(commands[0]) > maxLength:
-            maxLength = len(commands[0])
-    # Printing commands
-    for commands, description in commandList.items():
-        prints(commands[0].ljust(maxLength) + " - " + description)
+    printTable(commandList)
 
 
 def exit():
@@ -248,19 +241,52 @@ def months():
 
 
 # List of all commands (with description and a pointer to a function)
-commandList = {
-    ("help", "cmd", "command", "commands"): "Prints list of usable commands",
-    #("status", "state", "info", "information"): "Prints out information about the timestamps",
-    ("show", "list", "timestamps"): "Shows list of timestamps",
-    ("start", "begin"): "Adds new START timestamp",
-    ("stop", "end"): "Adds new STOP timestamp",
-    ("terms", "term"): "Calculates time spent between timestamps",
-    ("days", "day", "daily"): "Calculates time spent day by day",
-    #("weeks", "week", "weekly"): "Calculates time spent for each week",
-    ("months", "month", "monthly"): "Calculates time spent for each month",
-    ("today", ): "Calculates time spent on the current day",
-    ("exit", "quit"): "Exits the application"
-}
+commandList = [
+    {
+        "command": "help",
+        "description": "Prints list of usable commands",
+    },
+#    {
+#        "command": "status",
+#        "description": "Prints out information about the timestamps",
+#    },
+    {
+        "command": "show",
+        "description": "Shows list of timestamps",
+    },
+    {
+        "command": "start",
+        "description": "Adds new START timestamp",
+    },
+    {
+        "command": "stop",
+        "description": "Adds new STOP timestamp",
+    },
+    {
+        "command": "terms",
+        "description": "Calculates time spent between timestamps",
+    },
+    {
+        "command": "days",
+        "description": "Calculates time spent day by day",
+    },
+#    {
+#        "command": "weeks",
+#        "description": "Calculates time spent for each week",
+#    },
+    {
+        "command": "months",
+        "description": "Calculates time spent for each month",
+    },
+    {
+        "command": "today",
+        "description": "Calculates time spent on the current day",
+    },
+    {
+        "command": "exit",
+        "description": "Exits the application"
+    }
+]
 
 
 def execute(command: str):
@@ -270,13 +296,13 @@ def execute(command: str):
         command (str): Command to run
     """
     # Searcing list of commands
-    for commands in list(commandList.keys()):
-        if command in commands:
-            getattr(sys.modules[__name__], commands[0])()
+    for commands in commandList:
+        if command in commands["command"]:
+            getattr(sys.modules[__name__], commands["command"])()
             print()
             return
     # Message in case the command is not found
-    prints("Command not found, use '" + list(commandList.keys())[0][0] + "' to list all usable commands.")
+    prints("Command not found, use '" + commandList[0]["command"] + "' to list all usable commands.")
     print()
 
 
@@ -293,7 +319,6 @@ def main(args: list):
                 execute(command)
         else:
             # Asking for commands
-            print("Usable commands:")
             execute('help')
             while True:
                 execute(input('Enter command: '))
