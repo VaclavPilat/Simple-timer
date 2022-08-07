@@ -269,6 +269,22 @@ def delete():
         prints("Successfully removed file with timestamps.")
     else:
         prints("An error occured while deleting file with timestamps.")
+
+
+def status():
+    """Shows app status
+    """
+    if Timer().fileExists():
+        timestamps = Timer().loadTimestamps()
+        if len(timestamps) > 0:
+            if timestamps[-1]["type"] == "start":
+                prints("Current term is not closed. Time calculation will use current time as a STOP timestamp.")
+            else:
+                prints("Current term is closed.")
+        else:
+            prints("File doesn't have any timestamps in it.")
+    else:
+        prints("File with timestamp doesn't exist.")
     
 
 #########################################################################################
@@ -280,10 +296,10 @@ commandList = [
         "command": "help",
         "description": "Prints list of usable commands",
     },
-#    {
-#        "command": "status",
-#        "description": "Prints out information about the timestamps",
-#    },
+    {
+        "command": "status",
+        "description": "Prints out information about the timestamps",
+    },
     {
         "command": "show",
         "description": "Shows list of timestamps",
