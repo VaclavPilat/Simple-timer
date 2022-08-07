@@ -341,3 +341,42 @@ class Timer(object):
                     break
                 currentMonthDate = nextMonthDate
         return data, {"id": "TOTAL", "month": "", "time": total}
+
+
+    def calculateWeeks(cls, timestamps: list) -> tuple:
+        """Calculates time spent for each week
+        List of timestamps should start with a START timestamp.
+
+        Args:
+            timestamps (list): List of timestamps
+
+        Returns:
+            tuple: Data for output, total time spent
+        """
+        data = []
+        total = 0
+        if len(timestamps) > 0:
+            # Getting first and last dates
+            first = timestamps[0]["timestamp"]
+            if timestamps[-1]["type"] == "start":
+                timestamps.append({"id": "", "type": "stop", "timestamp": int(time.time())})
+            last = timestamps[-1]["timestamp"]
+            firstDate = datetime.datetime.fromtimestamp(first).date()
+            lastDate = datetime.datetime.fromtimestamp(last).date()
+            firstWeekDate = firstDate - datetime.timedelta(days=firstDate.weekday())
+            lastWeekDate = lastDate - datetime.timedelta(days=lastDate.weekday())
+            # Looping through each week
+            currentWeekDate = firstWeekDate
+            for i in range(int((lastWeekDate - firstWeekDate).days / 7) + 1):
+                # Getting next month
+                nextWeekDate = currentWeekDate + datetime.timedelta(days=7)
+                # Calculating time in months
+                currentWeekEndDate = nextWeekDate - datetime.timedelta(days=1)
+                timestampsBetweenDates = cls.getTimestampsBetweenDates(timestamps, currentWeekDate, currentWeekEndDate)
+                termsData, termsResult = cls.calculateTerms(timestampsBetweenDates)
+                if termsResult["time"] > 0:
+                    total += termsResult["time"]
+                    data.append({"id": len(data) +1, "monday": currentWeekDate, "sunday": currentWeekEndDate, "time": termsResult["time"]})
+                # Switching to next week
+                currentWeekDate = nextWeekDate
+        return data, {"id": "TOTAL", "monday": "", "sunday": "", "time": total}

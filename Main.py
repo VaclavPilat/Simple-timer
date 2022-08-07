@@ -102,6 +102,10 @@ def processTableData(data: list) -> list:
             row["hours"] = format(row["hours"], ".3f")
         if "date" in row and row["date"] != "":
             row["date"] = dateToReadableString(row["date"])
+        if "monday" in row and row["monday"] != "":
+            row["monday"] = dateToReadableString(row["monday"])
+        if "sunday" in row and row["sunday"] != "":
+            row["sunday"] = dateToReadableString(row["sunday"])
         if "month" in row and row["month"] != "":
             row["month"] = row["month"].strftime("%B %Y")
     # Altering result data
@@ -237,6 +241,13 @@ def months():
     printTable(data, result)
 
 
+def weeks():
+    """Calculates time for each week
+    """
+    data, result = Timer().calculateWeeks(Timer().loadTimestamps())
+    printTable(data, result)
+
+
 def erase():
     """Erasing last timestamp
     """
@@ -301,10 +312,10 @@ commandList = [
         "command": "days",
         "description": "Calculates time spent day by day",
     },
-#    {
-#        "command": "weeks",
-#        "description": "Calculates time spent for each week",
-#    },
+    {
+        "command": "weeks",
+        "description": "Calculates time spent for each week",
+    },
     {
         "command": "months",
         "description": "Calculates time spent for each month",
