@@ -235,6 +235,29 @@ def months():
     """
     data, result = Timer().calculateMonths(Timer().loadTimestamps())
     printTable(data, result)
+
+
+def erase():
+    """Erasing last timestamp
+    """
+    timestamps = Timer().loadTimestamps()
+    if len(timestamps) == 0:
+        prints("No timestamps found.")
+        return
+    timestamps.pop()
+    if Timer().saveTimestamps(timestamps):
+        prints("Successfully removed last timestamp.")
+    else:
+        prints("An error occured while saving file.")
+
+
+def delete():
+    """Deleting the whole file
+    """
+    if Timer().deleteFile():
+        prints("Successfully removed file with timestamps.")
+    else:
+        prints("An error occured while deleting file with timestamps.")
     
 
 #########################################################################################
@@ -261,6 +284,14 @@ commandList = [
     {
         "command": "stop",
         "description": "Adds new STOP timestamp",
+    },
+    {
+        "command": "erase",
+        "description": "Removes last timestamp"
+    },
+    {
+        "command": "delete",
+        "description": "Deletes the whole file"
     },
     {
         "command": "terms",
